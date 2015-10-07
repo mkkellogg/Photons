@@ -84,7 +84,7 @@ ParticleSystemPresets =
 		atlasFrameSet: new ParticleSystem.FrameSet( [0, 2], [0, 63] ),
 		sizeFrameSet : new ParticleSystem.FrameSet( [ 0, 2], [ new THREE.Vector3( 70, 70 ), new THREE.Vector3( 70, 70 ) ] ),
 		
-		alphaFrameSet : new ParticleSystem.FrameSet( [0, 0.5, 1.5, 1.9, 2], [0, 1, 1, 0, 0] ),
+		alphaFrameSet : new ParticleSystem.FrameSet( [0, 2], [1, 1] ),
 		colorFrameSet : new ParticleSystem.FrameSet( [0, 2], [ new THREE.Vector3(1, 1, 1), new THREE.Vector3(1, 1, 1) ] ),
 		blendStyle : THREE.AdditiveBlending,  
 		
