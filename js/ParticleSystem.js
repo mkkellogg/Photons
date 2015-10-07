@@ -16,6 +16,7 @@ function ParticleSystem( camera ) {
 	this.releaseAtOnceCount = 0.0;
 	this.hasInitialReleaseOccurred = false;
 
+	this.atlasFrameSet = undefined;
 	this.colorFrameSet = undefined;
 	this.alphaFrameSet = undefined;
 	this.sizeFrameSet = undefined;	
@@ -148,7 +149,7 @@ ParticleSystem.prototype.calculateMaxParticleCount = function () {
 
 		var minLifeSpan =  this.particleLifeSpan;
 		if ( this.lifespan != 0 &&  this.lifespan  < minLifeSpan) minLifeSpan = this.lifespan;		
-		this.maxParticleCount = this.particleReleaseRate * minLifeSpan * 2;
+		this.maxParticleCount = Math.max( this.particleReleaseRate * minLifeSpan * 2, 1.0 );
 
 	}
 
@@ -188,7 +189,7 @@ ParticleSystem.prototype.initializeMaterial = function () {
 	{
 		uniforms: 
 		{
-			texture:   { type: "t", value: this.particleTexture },
+			texture:   { type: "t", value: this.particleAtlas.getTexture() },
 		},
 
 		vertexShader:   ParticleSystem.ParticleVertexShader,
@@ -260,6 +261,7 @@ ParticleSystem.prototype.mergeParameters = function ( parameters ) {
 
 ParticleSystem.prototype.initialize = function( parameters ) {
 	
+	this.atlasFrameSet = undefined;
 	this.sizeFrameSet = undefined;
 	this.colorFrameSet = undefined;
 	this.alphaFrameSet = undefined;	
@@ -270,6 +272,7 @@ ParticleSystem.prototype.initialize = function( parameters ) {
 
 	}
 
+	if( !this.atlasFrameSet ) this.atlasFrameSet = new ParticleSystem.FrameSet();
 	if( !this.sizeFrameSet ) this.sizeFrameSet = new ParticleSystem.FrameSet();
 	if( !this.colorFrameSet ) this.colorFrameSet = new ParticleSystem.FrameSet();
 	if( !this.alphaFrameSet ) this.alphaFrameSet = new ParticleSystem.FrameSet();
@@ -368,13 +371,15 @@ ParticleSystem.prototype.updateAttributesWithParticleData = function () {
 			this.updateAttributeVector3( attributePosition, baseIndex + 4, quadPos3 );
 			this.updateAttributeVector3( attributePosition, baseIndex + 5, quadPos4 );
 
+			var imageDesc = this.particleAtlas.getImageDescriptor( particle.atlasIndex );
+
 			var attributeUV = this.particleGeometry.getAttribute( 'uv' );
-			this.updateAttributeVector2XY( attributeUV, baseIndex, 0, 1 );
-			this.updateAttributeVector2XY( attributeUV, baseIndex + 1, 0, 0 );
-			this.updateAttributeVector2XY( attributeUV, baseIndex + 2, 1, 1 );
-			this.updateAttributeVector2XY( attributeUV, baseIndex + 3, 0, 0 );
-			this.updateAttributeVector2XY( attributeUV, baseIndex + 4, 1, 0 );
-			this.updateAttributeVector2XY( attributeUV, baseIndex + 5, 1, 1 );
+			this.updateAttributeVector2XY( attributeUV, baseIndex, imageDesc.left, imageDesc.top );
+			this.updateAttributeVector2XY( attributeUV, baseIndex + 1, imageDesc.left, imageDesc.bottom );
+			this.updateAttributeVector2XY( attributeUV, baseIndex + 2, imageDesc.right, imageDesc.top );
+			this.updateAttributeVector2XY( attributeUV, baseIndex + 3, imageDesc.left, imageDesc.bottom );
+			this.updateAttributeVector2XY( attributeUV, baseIndex + 4, imageDesc.right, imageDesc.bottom );
+			this.updateAttributeVector2XY( attributeUV, baseIndex + 5, imageDesc.right, imageDesc.top );
 
 			var color = particle.color;
 			var alpha = particle.alpha;
@@ -495,6 +500,7 @@ ParticleSystem.prototype.resetParticle = function( particle ) {
 	particle.color.set( 0, 0, 0 );
 	particle.alpha = 1.0;			
 	particle.age = 0;
+	this.atlasIndex = 0;
 	particle.alive = 0; 
 
 	this.resetParticlePositionData( particle );
@@ -539,6 +545,13 @@ ParticleSystem.prototype.resetParticleRotationData = function( particle ) {
 ParticleSystem.prototype.advanceParticle = function( particle, deltaTime ) {
 
 	particle.age += deltaTime;
+
+	if ( this.atlasFrameSet.timeFrames.length > 0 ) {
+
+		var index = this.atlasFrameSet.interpolateFrameValuesScalar( particle.age );
+		particle.atlasIndex = Math.floor(index);
+
+	}
 
 	if ( this.sizeFrameSet.timeFrames.length > 0 ) {
 
@@ -750,10 +763,12 @@ ParticleSystem.prototype.update = function() {
 		} else {
 
 			var emitUnitTime = 1.0 / this.particleReleaseRate;
-			if( this.timeSinceLastEmit > emitUnitTime ) {
+			if( ! this.hasInitialReleaseOccurred || this.timeSinceLastEmit > emitUnitTime ) {
 				  
-				this.activateParticles( this.timeSinceLastEmit / emitUnitTime );	
+				var releaseCount = Math.max( 1, Math.floor( this.timeSinceLastEmit / emitUnitTime ) );
+				this.activateParticles( releaseCount );	
 				this.timeSinceLastEmit = 0.0;
+				this.hasInitialReleaseOccurred = true;
 
 			}
 
@@ -882,6 +897,7 @@ ParticleSystem.Particle = function () {
 	this.color = new THREE.Color();
 	this.alpha = 1.0;			
 	this.age = 0;
+	this.atlasIndex = 0;
 	this.alive = 0; 
 
 	this.position = new THREE.Vector3();
