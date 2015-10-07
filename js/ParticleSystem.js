@@ -185,6 +185,13 @@ ParticleSystem.prototype.initializeGeometry = function () {
 
 ParticleSystem.prototype.initializeMaterial = function () {
 
+	var depthTest = true;
+	if( this.blendStyle == THREE.AdditiveBlending ) {
+
+	//	depthTest = false;
+
+	}
+
 	this.particleMaterial = new THREE.ShaderMaterial( 
 	{
 		uniforms: 
@@ -206,7 +213,7 @@ ParticleSystem.prototype.initializeMaterial = function () {
 		//side: THREE.DoubleSide,
 		//side: THREE.BackSide,
 
-		depthTest: true,
+		depthTest: depthTest,
 		depthWrite: false
 	});
 

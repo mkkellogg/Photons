@@ -31,7 +31,8 @@
 
 	var screenWidth, screenHeight;
 	var particleSystem, rendererContainer, pointLight;
-	var cene, camera, renderer, controls, stats, clock;
+	var scene, camera, renderer, controls, stats, clock;
+	var currentSystemID;
 
 	$( document ).ready( function() {
 
@@ -111,18 +112,22 @@
 		groundTexture.wrapS = THREE.RepeatWrapping; 
 		groundTexture.wrapT = THREE.RepeatWrapping; 
 		groundTexture.repeat.set( 10, 10 );
+
 		var groundMaterial = new THREE.MeshLambertMaterial( {
+
                 color: 0xffffff,
                 shading: THREE.SmoothShading,
                 map: groundTexture,
                 vertexColors: THREE.NoColors,
                 side: THREE.DoubleSide
-            } );
+
+        } );
 
 		var groundGeometry = new THREE.PlaneGeometry( 1000, 1000, 10, 10 );
 		var groundMesh = new THREE.Mesh( groundGeometry, groundMaterial );
 		groundMesh.position.y = -10.5;
 		groundMesh.rotation.x = Math.PI / 2.0;
+
 		scene.add(groundMesh);
 
 	}
@@ -139,7 +144,6 @@
 
 	function initControls() {
 
-        // Mouse control
         controls = new THREE.OrbitControls( camera, renderer.domElement );
         controls.target.set( 0, 0, 0 );
         controls.update();
@@ -161,6 +165,34 @@
 
 	}
 
+	var flickerPointLight = (function() {
+
+		var lastAdjuster;
+
+		return function flickerPointLight() {
+
+			var adjuster = (Math.random() - 0.5);
+
+			if( lastAdjuster ) {
+
+				diff = (adjuster - lastAdjuster) *.2;
+				adjuster = lastAdjuster + diff;
+
+			}
+
+			var intensity = 7;
+			intensity += adjuster * 4;
+			pointLight.intensity = intensity;
+
+			pointLight.distance = adjuster * 70 + 200;
+			pointLight.color.setRGB(1,.8,.2);
+			pointLight.decay = 2;
+
+			lastAdjuster = adjuster;
+		}
+
+	})();
+
 	function startParticleSystem( id ) {
 
 		resetCamera();
@@ -171,22 +203,31 @@
 
 		}
 
+		currentSystemID = id;
 		var params;
 		if( id == PresetIDs.Sparks ) {
 
 			params = ParticleSystemPresets.Sparks;
 			pointLight.distance = 1000;
+			pointLight.intensity = 1;
+			pointLight.color.setRGB( 1,1,1);
 			pointLight.decay = 2;
 
 		} else if( id == PresetIDs.Smoke ) {
 			
 			params = ParticleSystemPresets.Smoke;
 			pointLight.distance = 50000;
+			pointLight.intensity = 1;
+			pointLight.color.setRGB( 1,1,1);
 			pointLight.decay = 0;
 
 		} else if( id == PresetIDs.Flame ) {
 			
-			params = ParticleSystemPresets.Flame;
+			params = ParticleSystemPresets.Flame
+			pointLight.distance = 300;
+			pointLight.intensity = 6;
+			pointLight.color.setRGB( 1, .7, 0);
+			pointLight.decay = 2;
 
 		} else {
 
@@ -222,6 +263,12 @@
 		
 		var deltaTime = clock.getDelta();
 		particleSystem.update( deltaTime );	
+
+		if ( currentSystemID == PresetIDs.Flame ) {
+
+			flickerPointLight();
+
+		}
 
 	}
 
