@@ -1,0 +1,231 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+    <script type="text/javascript" src="js/jquery-1.10.2.min.js"></script>
+    <script src="../three.js/build/three.min.js"></script>
+	<script src="../three.js/examples/js/Detector.js"></script>
+	<script src="../three.js/examples/js/libs/stats.min.js"></script>
+	<script src="../three.js/examples/js/controls/OrbitControls.js"></script>
+	<script src="js/ParticleSystem.js"></script>
+	<script src="js/ParticleSystemPresets.js"></script>			
+	<script type='text/javascript' src='../three.js/examples/js/libs/dat.gui.min.js'></script>
+
+    <link rel="stylesheet" href="css/main.css" type="text/css" media="screen" />
+    <title>Three.js Particle System</title>
+</head>
+<body>
+
+<div id="renderingContainer" style="position: absolute; left:0px; top:0px"></div>
+
+<script>
+
+	var PresetIDs = Object.freeze(
+	{
+		Sparks: 1,
+		Smoke: 2,
+		Flame: 3
+	});
+	
+	var screenWidth, screenHeight;
+	var particleSystem, rendererContainer;
+	var cene, camera, renderer, controls, stats, clock;
+
+	$( document ).ready( function() {
+
+		init();
+		animate();
+
+	});
+
+	function init() 
+	{
+		clock = new THREE.Clock();		
+
+		getScreenDimensions();
+
+		initRenderer();
+		initScene();
+		initControls();
+		initStats();		
+		initParticleSystems();
+		initGUI();
+		initListeners();
+
+	}
+
+	function initParticleSystems() {
+
+		startParticleSystem ( PresetIDs.Sparks );
+
+	}
+
+	function initGUI() {
+
+		gui = new dat.GUI();	
+		parameters = 
+		{
+			sparks:  function() { startParticleSystem( PresetIDs.Sparks ); },	
+			smoke:  function() { startParticleSystem( PresetIDs.Smoke ); },				
+			flame:  function() { startParticleSystem( PresetIDs.Flame ); }		
+		};
+
+		gui.add( parameters, 'sparks').name( "Sparks" );	
+		gui.add( parameters, 'smoke' ).name( "Smoke" );
+		gui.add( parameters, 'flame' ).name( "Flame" );
+		
+		gui.open();
+
+	}
+
+	function initListeners() {
+
+        window.addEventListener( 'resize', onWindowResize, false );
+        
+    }
+
+	function initRenderer() {
+
+		renderer = new THREE.WebGLRenderer();
+        renderer.setSize( screenWidth, screenHeight );
+        renderer.setClearColor( 0x000000 );
+		rendererContainer = document.getElementById( 'renderingContainer' );
+		rendererContainer.appendChild( renderer.domElement );
+
+	}
+
+	function initScene() {
+
+		camera = new THREE.PerspectiveCamera( 45, 1.0, 2, 2000 );
+		scene = new THREE.Scene();
+		scene.add(camera);
+		resetCamera();
+
+		var light = new THREE.PointLight( 0xffffff, 2, 1000, 1);
+		light.position.set(0,100,0);
+		scene.add(light);
+
+		var groundTexture = new THREE.ImageUtils.loadTexture( 'images/stoneground.png' );
+		groundTexture.wrapS = THREE.RepeatWrapping; 
+		groundTexture.wrapT = THREE.RepeatWrapping; 
+		groundTexture.repeat.set( 10, 10 );
+		var groundMaterial = new THREE.MeshLambertMaterial( {
+                color: 0xffffff,
+                shading: THREE.SmoothShading,
+                map: groundTexture,
+                vertexColors: THREE.NoColors,
+                side: THREE.DoubleSide
+            } );
+
+		var groundGeometry = new THREE.PlaneGeometry( 1000, 1000, 10, 10 );
+		var groundMesh = new THREE.Mesh( groundGeometry, groundMaterial );
+		groundMesh.position.y = -10.5;
+		groundMesh.rotation.x = Math.PI / 2.0;
+		scene.add(groundMesh);
+
+	}
+
+	function initStats() {
+
+		stats = new Stats();
+		stats.domElement.style.position = 'absolute';
+		stats.domElement.style.bottom = '0px';
+		stats.domElement.style.zIndex = 100;
+		rendererContainer.appendChild( stats.domElement );
+
+	}
+
+	function initControls() {
+
+        // Mouse control
+        controls = new THREE.OrbitControls( camera, renderer.domElement );
+        controls.target.set( 0, 0, 0 );
+        controls.update();
+
+    }
+
+	function onWindowResize() { 
+
+		renderer.setSize( screenWidth, screenHeight );
+		resetCamera();		
+
+	}
+
+	function animate() {
+
+	    requestAnimationFrame( animate );
+	    update();
+		render();	
+
+	}
+
+	function startParticleSystem( id ) {
+
+		resetCamera();
+		
+		if( particleSystem ){
+
+			particleSystem.destroy();
+
+		}
+
+		var params;
+		if( id == PresetIDs.Sparks ) {
+
+			params = ParticleSystemPresets.Sparks;
+
+		} else if( id == PresetIDs.Smoke ) {
+			
+			params = ParticleSystemPresets.Smoke;
+
+		} else if( id == PresetIDs.Flame ) {
+			
+			params = ParticleSystemPresets.Flame;
+
+		} else {
+
+			return;
+		}
+
+		particleSystem = new ParticleSystem( camera );
+		particleSystem.initialize( params );
+
+	}
+
+	function getScreenDimensions() {
+
+		screenWidth = window.innerWidth;
+		screenHeight = window.innerHeight;
+
+	}
+
+	function resetCamera() {
+
+		getScreenDimensions();
+		camera.aspect = screenWidth / screenHeight;
+		camera.updateProjectionMatrix();
+		camera.position.set(0,200,400);
+		camera.lookAt(scene.position);	
+
+	}
+
+	function update() {
+
+		controls.update();
+		stats.update();
+		
+		var deltaTime = clock.getDelta();
+		particleSystem.update( deltaTime );	
+
+	}
+
+	function render() {
+
+		renderer.render( scene, camera );
+
+	}
+
+</script>
+</body>
+</html>
