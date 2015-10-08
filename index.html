@@ -11,6 +11,7 @@
 	<script src="js/Atlas.js"></script>
 	<script src="js/ParticleSystem.js"></script>
 	<script src="js/ParticleSystemPresets.js"></script>			
+	<script src="../three.js/examples/js/loaders/OBJLoader.js"></script>
 	<script type='text/javascript' src='../three.js/examples/js/libs/dat.gui.min.js'></script>
 
     <link rel="stylesheet" href="css/main.css" type="text/css" media="screen" />
@@ -40,6 +41,61 @@
 		animate();
 
 	});
+
+	var manager = new THREE.LoadingManager();
+	var texture = new THREE.Texture();
+
+	manager.onProgress = function ( item, loaded, total ) {
+
+		console.log( item, loaded, total );
+
+	};
+
+	var onProgress = function ( xhr ) {
+
+		if ( xhr.lengthComputable ) {
+
+			var percentComplete = xhr.loaded / xhr.total * 100;
+			console.log( Math.round(percentComplete, 2) + '% downloaded' );
+
+		}
+
+	};
+
+	var onError = function ( xhr ) {
+
+	};
+
+	var loader = new THREE.ImageLoader( manager );
+	loader.load( 'models/Stuff01.png', function ( image ) {
+		texture.image = image;
+		texture.needsUpdate = true;
+	} );
+
+
+	var loader = new THREE.OBJLoader( manager );
+	loader.load( 'models/CamFire01.obj', function ( object ) {
+
+		object.traverse( function ( child ) {
+
+			if ( child instanceof THREE.Mesh ) {
+
+				child.material.map = texture;
+				child.castShadow = true;
+				child.receiveShadow = true;
+
+			}
+
+		} );
+
+		object.position.set(0,0,0);
+		object.scale.set(7,7,7);
+		object.castShadow = true;
+		object.receiveShadow = true;
+		scene.add( object );
+
+	}, onProgress, onError );
+
 
 	function init() 
 	{
@@ -92,6 +148,8 @@
 		renderer = new THREE.WebGLRenderer();
         renderer.setSize( screenWidth, screenHeight );
         renderer.setClearColor( 0x000000 );
+        renderer.shadowMap.enabled = true;
+		renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 		rendererContainer = document.getElementById( 'renderingContainer' );
 		rendererContainer.appendChild( renderer.domElement );
 
@@ -105,8 +163,24 @@
 		resetCamera();
 
 		pointLight = new THREE.PointLight( 0xffffff, 2, 1000, 1);
-		pointLight.position.set(0,100,0);
+		pointLight.position.set(0,40,0);
+		pointLight.castShadow = true;
+		pointLight.shadowCameraNear = 1;
+		pointLight.shadowCameraFar = 10000;
+		pointLight.shadowDarkness = 0.7;
+		// pointLight.shadowCameraVisible = true;
+		pointLight.shadowMapWidth = 2048;
+		pointLight.shadowMapHeight = 1024;
+		pointLight.shadowBias = 0.0;
 		scene.add(pointLight);
+
+		var geometry = new THREE.SphereGeometry( 10, 32, 32 );
+		var material = new THREE.MeshLambertMaterial( { color: 0xffffff } );
+		var sphere = new THREE.Mesh( geometry, material );
+		sphere.castShadow = true;
+		sphere.receiveShadow = true;
+		sphere.position.set(-50, 35, 50);
+		scene.add( sphere );
 
 		var groundTexture = new THREE.ImageUtils.loadTexture( 'images/stoneground.png' );
 		groundTexture.wrapS = THREE.RepeatWrapping; 
@@ -123,11 +197,11 @@
 
         } );
 
-		var groundGeometry = new THREE.PlaneGeometry( 1000, 1000, 10, 10 );
+		var groundGeometry = new THREE.PlaneGeometry( 1000, 1000, 30, 30 );
 		var groundMesh = new THREE.Mesh( groundGeometry, groundMaterial );
-		groundMesh.position.y = -10.5;
+		groundMesh.position.y = 0;
 		groundMesh.rotation.x = Math.PI / 2.0;
-
+		groundMesh.receiveShadow = true;
 		scene.add(groundMesh);
 
 	}

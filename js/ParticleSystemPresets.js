@@ -69,27 +69,27 @@ ParticleSystemPresets =
     Flame :
 	{
 		initialPositionRangeType : ParticleSystem.RangeType.Cube,
-		initialPositionOffset : new THREE.Vector3( 0, 14 , 0 ),
+		initialPositionOffset : new THREE.Vector3( 0, 7 , 0 ),
 		initialPositionRange : new THREE.Vector3( 3, 0, 3 ),
 		
 		initialVelocityRangeType : ParticleSystem.RangeType.Cube,
-		initialVelocityOffset : new THREE.Vector3(0,45,0),
-		initialVelocityRange : new THREE.Vector3(15,10,15),
+		initialVelocityOffset : new THREE.Vector3(0,25,0),
+		initialVelocityRange : new THREE.Vector3(10,5,10),
 
 		initialRotationOffset : 0,
 		initialRotationRange : 0,
 
 		particleAtlas : Atlas.createGridAtlas( THREE.ImageUtils.loadTexture( 'images/fireloop3.jpg' ), 0.0, 1.0, 1.0, 0.0, 8.0, 8.0, false, true ),
 		
-		atlasFrameSet: new ParticleSystem.FrameSet( [0, 2], [0, 63] ),
-		sizeFrameSet : new ParticleSystem.FrameSet( [ 0, 2], [ new THREE.Vector3( 20, 25 ), new THREE.Vector3( 20, 25 ) ] ),
+		atlasFrameSet: new ParticleSystem.FrameSet( [0, 3], [0, 63] ),
+		sizeFrameSet : new ParticleSystem.FrameSet( [ 0, 3], [ new THREE.Vector3( 20, 25 ), new THREE.Vector3( 20, 25 ) ] ),
 		
-		alphaFrameSet : new ParticleSystem.FrameSet( [0, 0.8, 1.8, 2], [ 0, 1, 1, 0] ),
-		colorFrameSet : new ParticleSystem.FrameSet( [0, 2], [ new THREE.Vector3(1, 1, 1), new THREE.Vector3(1, 1, 1) ] ),
+		alphaFrameSet : new ParticleSystem.FrameSet( [0, 0.5, 1.2, 2.0, 3], [ 0, .3, 1, 1, 0] ),
+		colorFrameSet : new ParticleSystem.FrameSet( [0, 3], [ new THREE.Vector3(1, 1, 1), new THREE.Vector3(1, 1, 1) ] ),
 		blendStyle : THREE.AdditiveBlending,  
 		
-		particleReleaseRate : 6,
-		particleLifeSpan : 2,		
+		particleReleaseRate : 3,
+		particleLifeSpan : 3,		
 		emitterDeathAge : 60
 	}
 	
