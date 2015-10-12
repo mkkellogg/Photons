@@ -2,14 +2,16 @@
 * @author Mark Kellogg
 */
 
-ParticleSystem.FrameSet = function ( timeFrames, valueFrames ) {
+var Particles = Particles || {};
+
+Particles.FrameSet = function ( timeFrames, valueFrames ) {
 
 	this.timeFrames = timeFrames || [];
 	this.valueFrames = valueFrames || [];
 
 }
 
-ParticleSystem.FrameSet.prototype.findNextFrameForTimeValue = function( t ) {
+Particles.FrameSet.prototype.findNextFrameForTimeValue = function( t ) {
 
 	var frameIndex = 0;
 	while( frameIndex < this.timeFrames.length && this.timeFrames[ frameIndex ] < t ) {
@@ -21,19 +23,19 @@ ParticleSystem.FrameSet.prototype.findNextFrameForTimeValue = function( t ) {
 	return frameIndex;
 }
 
-ParticleSystem.FrameSet.prototype.lerpScalar = function( a, b, f ) {
+Particles.FrameSet.prototype.lerpScalar = function( a, b, f ) {
 
 	return a + f * ( b - a );
 
 }
 
-ParticleSystem.FrameSet.prototype.calculateFraction = function( a, b, z ) {
+Particles.FrameSet.prototype.calculateFraction = function( a, b, z ) {
 
 	return ( z - a ) / ( b - a );
 
 }
 
-ParticleSystem.FrameSet.prototype.interpolateFrameValuesScalar = function( t ) {
+Particles.FrameSet.prototype.interpolateFrameValuesScalar = function( t ) {
 
 	var nextFrameIndex = this.findNextFrameForTimeValue( t );
 	var currentFrameIndex = nextFrameIndex - 1;
@@ -54,7 +56,7 @@ ParticleSystem.FrameSet.prototype.interpolateFrameValuesScalar = function( t ) {
 
 }
 
-ParticleSystem.FrameSet.prototype.interpolateFrameValuesVector = function( t, target ) {
+Particles.FrameSet.prototype.interpolateFrameValuesVector = function( t, target ) {
 
 	var nextFrameIndex = this.findNextFrameForTimeValue( t );
 	var currentFrameIndex = nextFrameIndex - 1;

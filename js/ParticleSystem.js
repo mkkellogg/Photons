@@ -6,7 +6,9 @@
 // Particle system
 //=======================================
 
-function ParticleSystem() {
+var Particles = Particles || {};
+
+Particles.ParticleSystem = function() {
 	
 	this.zSort = false;
 
@@ -21,11 +23,11 @@ function ParticleSystem() {
 	this.sizeFrameSet = undefined;	
 
 	// Particle position and position modifiers (velocity and acceleration)
-	this.initialPositionRangeType = ParticleSystem.RangeType.Cube;		
+	this.initialPositionRangeType = Particles.RangeType.Cube;		
 	this.initialPositionOffset = new THREE.Vector3();
 	this.initialPositionRange = new THREE.Vector3();
 	this.initialPositionRangeEdgeClamp = false;
-	this.initialVelocityRangeType = ParticleSystem.RangeType.Cube;	
+	this.initialVelocityRangeType = Particles.RangeType.Cube;	
 	this.initialVelocityOffset = new THREE.Vector3();
 	this.initialVelocityRange = new THREE.Vector3(); 
 	this.initialVelocityRangeEdgeClamp = false;	
@@ -70,7 +72,7 @@ function ParticleSystem() {
 	this._tempMatrix4 = new THREE.Matrix4();
 }
 
-ParticleSystem.RangeType = Object.freeze( {
+Particles.RangeType = Object.freeze( {
 
 	Cube: 1, 
 	Sphere: 2,
@@ -78,7 +80,7 @@ ParticleSystem.RangeType = Object.freeze( {
 
 } );
 
-ParticleSystem.Constants = Object.freeze( {
+Particles.Constants = Object.freeze( {
 
 	VerticesPerParticle: 6,
 	DegreesToRadians: Math.PI / 180.0
@@ -89,7 +91,7 @@ ParticleSystem.Constants = Object.freeze( {
 // Particle system shaders
 //=======================================
 
-ParticleSystem.ParticleVertexShader = [
+Particles.ParticleSystem.ParticleVertexShader = [
 
 	"attribute vec3 particleColor;",
 	"attribute float particleAlpha;",
@@ -105,7 +107,7 @@ ParticleSystem.ParticleVertexShader = [
 
 ].join("\n");
 
-ParticleSystem.ParticleFragmentShader = [
+Particles.ParticleSystem.ParticleFragmentShader = [
 
 	"varying vec2 vUV;",
 	"varying vec4 vColor;", 
@@ -122,7 +124,7 @@ ParticleSystem.ParticleFragmentShader = [
 // Particle system functions
 //=======================================
 
-ParticleSystem.prototype.calculateAverageParticleLifeSpan = function () {
+Particles.ParticleSystem.prototype.calculateAverageParticleLifeSpan = function () {
 
 	var total = 0.0;
 
@@ -138,7 +140,7 @@ ParticleSystem.prototype.calculateAverageParticleLifeSpan = function () {
 
 }
 
-ParticleSystem.prototype.calculateMaxParticleCount = function () {
+Particles.ParticleSystem.prototype.calculateMaxParticleCount = function () {
 
 	if ( this.releaseAtOnce ) {
 
@@ -152,11 +154,11 @@ ParticleSystem.prototype.calculateMaxParticleCount = function () {
 
 	}
 
-	this.vertexCount = this.maxParticleCount * ParticleSystem.Constants.VerticesPerParticle;
+	this.vertexCount = this.maxParticleCount * Particles.Constants.VerticesPerParticle;
 
 }
 
-ParticleSystem.prototype.initializeGeometry = function () {
+Particles.ParticleSystem.prototype.initializeGeometry = function () {
 
 	this.particleGeometry = new THREE.BufferGeometry();
 	var particleColor = new Float32Array( this.vertexCount * 4 );
@@ -182,7 +184,7 @@ ParticleSystem.prototype.initializeGeometry = function () {
 	
 }
 
-ParticleSystem.prototype.initializeMaterial = function () {
+Particles.ParticleSystem.prototype.initializeMaterial = function () {
 
 	var depthTest = true;
 	if( this.blendStyle == THREE.AdditiveBlending ) {
@@ -198,8 +200,8 @@ ParticleSystem.prototype.initializeMaterial = function () {
 			texture:   { type: "t", value: this.particleAtlas.getTexture() },
 		},
 
-		vertexShader:   ParticleSystem.ParticleVertexShader,
-		fragmentShader: ParticleSystem.ParticleFragmentShader,
+		vertexShader:   Particles.ParticleSystem.ParticleVertexShader,
+		fragmentShader: Particles.ParticleSystem.ParticleFragmentShader,
 
 		transparent: true,  
 		alphaTest: 0.5, 
@@ -218,7 +220,7 @@ ParticleSystem.prototype.initializeMaterial = function () {
 
 }
 
-ParticleSystem.prototype.initializeParticleArray = function () {
+Particles.ParticleSystem.prototype.initializeParticleArray = function () {
 
 	for ( var i = 0; i < this.maxParticleCount; i++ ) {
 
@@ -234,7 +236,7 @@ ParticleSystem.prototype.initializeParticleArray = function () {
 	this.deadParticleArray.length = this.deadParticleCount;			
 }
 
-ParticleSystem.prototype.initializeMesh = function () {
+Particles.ParticleSystem.prototype.initializeMesh = function () {
 
 	this.destroyMesh();
 
@@ -243,7 +245,7 @@ ParticleSystem.prototype.initializeMesh = function () {
 
 }
 
-ParticleSystem.prototype.destroyMesh = function() {
+Particles.ParticleSystem.prototype.destroyMesh = function() {
 
 	if( this.particleMesh ) {
 
@@ -253,7 +255,7 @@ ParticleSystem.prototype.destroyMesh = function() {
 
 }
 
-ParticleSystem.prototype.mergeParameters = function ( parameters ) {
+Particles.ParticleSystem.prototype.mergeParameters = function ( parameters ) {
 
 	for ( var key in parameters ) {
 
@@ -263,7 +265,7 @@ ParticleSystem.prototype.mergeParameters = function ( parameters ) {
 
 }
 
-ParticleSystem.prototype.initialize = function( camera, parameters ) {
+Particles.ParticleSystem.prototype.initialize = function( camera, parameters ) {
 	
 	this.camera = camera;
 
@@ -278,10 +280,10 @@ ParticleSystem.prototype.initialize = function( camera, parameters ) {
 
 	}
 
-	if( !this.atlasFrameSet ) this.atlasFrameSet = new ParticleSystem.FrameSet();
-	if( !this.sizeFrameSet ) this.sizeFrameSet = new ParticleSystem.FrameSet();
-	if( !this.colorFrameSet ) this.colorFrameSet = new ParticleSystem.FrameSet();
-	if( !this.alphaFrameSet ) this.alphaFrameSet = new ParticleSystem.FrameSet();
+	if( !this.atlasFrameSet ) this.atlasFrameSet = new Particles.FrameSet();
+	if( !this.sizeFrameSet ) this.sizeFrameSet = new Particles.FrameSet();
+	if( !this.colorFrameSet ) this.colorFrameSet = new Particles.FrameSet();
+	if( !this.alphaFrameSet ) this.alphaFrameSet = new Particles.FrameSet();
 
 	this.liveParticleArray = [];
 	this.timeSinceLastEmit = 0.0;
@@ -298,7 +300,7 @@ ParticleSystem.prototype.initialize = function( camera, parameters ) {
 	this.initializeMesh();
 }
 
-ParticleSystem.prototype.getCameraWorldAxes = function () {
+Particles.ParticleSystem.prototype.getCameraWorldAxes = function () {
 
 	var quaternion = new THREE.Quaternion();
 
@@ -313,7 +315,7 @@ ParticleSystem.prototype.getCameraWorldAxes = function () {
 
 }();
 
-ParticleSystem.prototype.generateXYAlignedQuadForParticle = function () {
+Particles.ParticleSystem.prototype.generateXYAlignedQuadForParticle = function () {
 
 	var vectorX = new THREE.Vector3();
 	var vectorY = new THREE.Vector3();
@@ -326,8 +328,8 @@ ParticleSystem.prototype.generateXYAlignedQuadForParticle = function () {
 		vectorX.copy( axisX );
 		vectorY.copy( axisY );
 
-		vectorX.multiplyScalar( Math.cos( rotation * ParticleSystem.Constants.DegreesToRadians ) );
-		vectorY.multiplyScalar( Math.sin( rotation * ParticleSystem.Constants.DegreesToRadians ) );
+		vectorX.multiplyScalar( Math.cos( rotation * Particles.Constants.DegreesToRadians ) );
+		vectorY.multiplyScalar( Math.sin( rotation * Particles.Constants.DegreesToRadians ) );
 
 		vectorX.addVectors( vectorX, vectorY );
 		vectorY.crossVectors( axisZ, vectorX );
@@ -344,7 +346,7 @@ ParticleSystem.prototype.generateXYAlignedQuadForParticle = function () {
 
 }();
 	
-ParticleSystem.prototype.updateAttributesWithParticleData = function () {
+Particles.ParticleSystem.prototype.updateAttributesWithParticleData = function () {
 
 	var vectorY = new THREE.Vector3();
 	var vectorX = new THREE.Vector3();
@@ -367,7 +369,7 @@ ParticleSystem.prototype.updateAttributesWithParticleData = function () {
 
 			this.generateXYAlignedQuadForParticle( particle, vectorX, vectorY, vectorZ, quadPos1, quadPos2, quadPos3, quadPos4 );
 
-			var baseIndex = p * ParticleSystem.Constants.VerticesPerParticle;
+			var baseIndex = p * Particles.Constants.VerticesPerParticle;
 
 			var attributePosition = this.particleGeometry.getAttribute( 'position' );
 			this.updateAttributeVector3( attributePosition, baseIndex, quadPos1 );
@@ -392,7 +394,7 @@ ParticleSystem.prototype.updateAttributesWithParticleData = function () {
 
 			var attributeColor = this.particleGeometry.getAttribute( 'particleColor' );
 			var attributeAlpha = this.particleGeometry.getAttribute( 'particleAlpha' );
-			for(var i =0; i < ParticleSystem.Constants.VerticesPerParticle; i++ ) {
+			for(var i =0; i < Particles.Constants.VerticesPerParticle; i++ ) {
 
 				var index = baseIndex + i;
 
@@ -402,13 +404,13 @@ ParticleSystem.prototype.updateAttributesWithParticleData = function () {
 
 		}
 
-		this.particleGeometry.setDrawRange( 0, ParticleSystem.Constants.VerticesPerParticle * this.liveParticleCount );
+		this.particleGeometry.setDrawRange( 0, Particles.Constants.VerticesPerParticle * this.liveParticleCount );
 
 	}
 
 }();
 
-ParticleSystem.prototype.updateAttributeVector2XY = function ( attribute, index, x, y ) {
+Particles.ParticleSystem.prototype.updateAttributeVector2XY = function ( attribute, index, x, y ) {
 
 	attribute.array[ index * 2 ] = x;
 	attribute.array[ index * 2 + 1 ] = y;
@@ -416,7 +418,7 @@ ParticleSystem.prototype.updateAttributeVector2XY = function ( attribute, index,
 
 }
 
-ParticleSystem.prototype.updateAttributeVector3 = function ( attribute, index, value ) {
+Particles.ParticleSystem.prototype.updateAttributeVector3 = function ( attribute, index, value ) {
 
 	attribute.array[ index * 3 ] = value.x;
 	attribute.array[ index * 3 + 1 ] = value.y;
@@ -425,7 +427,7 @@ ParticleSystem.prototype.updateAttributeVector3 = function ( attribute, index, v
 
 }
 
-ParticleSystem.prototype.updateAttributeColor = function ( attribute, index, value ) {
+Particles.ParticleSystem.prototype.updateAttributeColor = function ( attribute, index, value ) {
 
 	attribute.array[ index * 4 ] = value.r;
 	attribute.array[ index * 4 + 1 ] = value.g;
@@ -435,20 +437,20 @@ ParticleSystem.prototype.updateAttributeColor = function ( attribute, index, val
 
 }
 
-ParticleSystem.prototype.updateAttributeScalar = function ( attribute, index, value ) {
+Particles.ParticleSystem.prototype.updateAttributeScalar = function ( attribute, index, value ) {
 
 	attribute.array[ index ] = value;	
 	attribute.needsUpdate = true;
 
 }
 
-ParticleSystem.prototype.getRandomScalar = function( base, range ) {
+Particles.ParticleSystem.prototype.getRandomScalar = function( base, range ) {
 
 	return base + range * (Math.random() - 0.5);
 
 }
 
-ParticleSystem.prototype.getRandomVector3Cube = function( vector, offset, range, edgeClamp ) {
+Particles.ParticleSystem.prototype.getRandomVector3Cube = function( vector, offset, range, edgeClamp ) {
 
 	vector.set( Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5 );
 
@@ -466,7 +468,7 @@ ParticleSystem.prototype.getRandomVector3Cube = function( vector, offset, range,
 
 }
 
-ParticleSystem.prototype.getRandomVector3Sphere = function( vector, offset, range, edgeClamp ) {
+Particles.ParticleSystem.prototype.getRandomVector3Sphere = function( vector, offset, range, edgeClamp ) {
 
 	var x = Math.random() - 0.5;
 	var y = Math.random() - 0.5;
@@ -487,20 +489,20 @@ ParticleSystem.prototype.getRandomVector3Sphere = function( vector, offset, rang
 
 }
 
-ParticleSystem.prototype.createParticle = function() {
+Particles.ParticleSystem.prototype.createParticle = function() {
 
-	var particle = new ParticleSystem.Particle();	
+	var particle = new Particles.Particle();	
 	return particle;
 
 }
 
-ParticleSystem.prototype.initializeParticle = function( particle ) {
+Particles.ParticleSystem.prototype.initializeParticle = function( particle ) {
 
 	 
 
 }
 
-ParticleSystem.prototype.resetParticle = function( particle ) {
+Particles.ParticleSystem.prototype.resetParticle = function( particle ) {
 
 	particle.size.set( 0, 0 );
 	particle.color.set( 0, 0, 0 );
@@ -514,23 +516,23 @@ ParticleSystem.prototype.resetParticle = function( particle ) {
 
 }
 
-ParticleSystem.prototype.resetParticlePositionData = function( particle ) {
+Particles.ParticleSystem.prototype.resetParticlePositionData = function( particle ) {
 
-	if (this.initialPositionRangeType == ParticleSystem.RangeType.Cube) {
+	if (this.initialPositionRangeType == Particles.RangeType.Cube) {
 
 		this.getRandomVector3Cube( particle.position, this.initialPositionOffset, this.initialPositionRange,  this.initialPositionRangeEdgeClamp ); 
 
-	} else if (this.initialPositionRangeType == ParticleSystem.RangeType.Sphere)	{
+	} else if (this.initialPositionRangeType == Particles.RangeType.Sphere)	{
 
 		this.getRandomVector3Sphere( particle.position, this.initialPositionOffset, this.initialPositionRange,  this.initialPositionRangeEdgeClamp );
 
 	}
 		
-	if ( this.initialVelocityRangeType == ParticleSystem.RangeType.Cube ) {
+	if ( this.initialVelocityRangeType == Particles.RangeType.Cube ) {
 
 		this.getRandomVector3Cube( particle.velocity, this.initialVelocityOffset, this.initialVelocityRange, this.initialVelocityRangeEdgeClamp ); 
 
-	} else 	if ( this.initialVelocityRangeType == ParticleSystem.RangeType.Sphere ) {
+	} else 	if ( this.initialVelocityRangeType == Particles.RangeType.Sphere ) {
 
 		this.getRandomVector3Sphere( particle.velocity, this.initialVelocityOffset, this.initialVelocityRange, this.initialVelocityRangeEdgeClamp );
 		
@@ -540,7 +542,7 @@ ParticleSystem.prototype.resetParticlePositionData = function( particle ) {
 
 }
 
-ParticleSystem.prototype.resetParticleRotationData = function( particle ) {
+Particles.ParticleSystem.prototype.resetParticleRotationData = function( particle ) {
 
 	particle.rotation  = this.getRandomScalar( this.initialRotationOffset, this.initialRotationRange );
 	particle.angularVelocity = this.getRandomScalar( this.initialAngularVelocityOffset, this.initialAngularVelocityRange );
@@ -548,7 +550,7 @@ ParticleSystem.prototype.resetParticleRotationData = function( particle ) {
 
 }
 
-ParticleSystem.prototype.advanceParticle = function( particle, deltaTime ) {
+Particles.ParticleSystem.prototype.advanceParticle = function( particle, deltaTime ) {
 
 	particle.age += deltaTime;
 
@@ -591,7 +593,7 @@ ParticleSystem.prototype.advanceParticle = function( particle, deltaTime ) {
 
 }
 
-ParticleSystem.prototype.advanceParticles = function( deltaTime ) {
+Particles.ParticleSystem.prototype.advanceParticles = function( deltaTime ) {
 
 	var deadCount = 0;
 
@@ -613,20 +615,20 @@ ParticleSystem.prototype.advanceParticles = function( deltaTime ) {
 
 }
 
-ParticleSystem.prototype.killParticle = function( particle ) {
+Particles.ParticleSystem.prototype.killParticle = function( particle ) {
 
 	particle.alive = 0.0;
 
 }
 
-ParticleSystem.prototype.activateParticle = function( particle ) {
+Particles.ParticleSystem.prototype.activateParticle = function( particle ) {
 
 	this.resetParticle( particle );
 	particle.alive = 1.0;
 
 }
 
-ParticleSystem.prototype.cleanupDeadParticles = function () {
+Particles.ParticleSystem.prototype.cleanupDeadParticles = function () {
 
 	var topAlive = this.liveParticleCount - 1;
 	var bottomDead = 0;
@@ -669,7 +671,7 @@ ParticleSystem.prototype.cleanupDeadParticles = function () {
 
 }
 
-ParticleSystem.prototype.sortParticleArray = function () {
+Particles.ParticleSystem.prototype.sortParticleArray = function () {
 
 	function numericalSort ( a, b ) {
 
@@ -719,7 +721,7 @@ ParticleSystem.prototype.sortParticleArray = function () {
 
 }();
 
-ParticleSystem.prototype.activateParticles = function( count ) {
+Particles.ParticleSystem.prototype.activateParticles = function( count ) {
 
 	for (var i = 0; i < count; i++) {
 
@@ -744,7 +746,7 @@ ParticleSystem.prototype.activateParticles = function( count ) {
 	this.deadParticleArray.length = this.deadParticleCount;
 }
 
-ParticleSystem.prototype.update = function() {
+Particles.ParticleSystem.prototype.update = function() {
 
 	var tempMatrix4 = new THREE.Matrix4();
 
@@ -804,7 +806,7 @@ ParticleSystem.prototype.update = function() {
 	
 }();
 
-ParticleSystem.prototype.deactivate = function() {
+Particles.ParticleSystem.prototype.deactivate = function() {
 
 	if( this.active ) { 
 
@@ -816,7 +818,7 @@ ParticleSystem.prototype.deactivate = function() {
 }
 
 
-ParticleSystem.prototype.activate = function() {
+Particles.ParticleSystem.prototype.activate = function() {
 
     if( ! this.active ) { 
 
@@ -831,7 +833,7 @@ ParticleSystem.prototype.activate = function() {
 // Particle object
 //=======================================
 
-ParticleSystem.Particle = function () {
+Particles.Particle = function () {
 
 	this.size = new THREE.Vector2();
 	this.color = new THREE.Color();
