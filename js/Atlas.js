@@ -2,7 +2,6 @@
 * @author Mark Kellogg
 */
 
-
 var Atlas = function( texture, createFirstFullFrame ) {
 
 	this.texture = texture;

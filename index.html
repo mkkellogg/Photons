@@ -8,9 +8,10 @@
 	<script src="../three.js/examples/js/Detector.js"></script>
 	<script src="../three.js/examples/js/libs/stats.min.js"></script>
 	<script src="../three.js/examples/js/controls/OrbitControls.js"></script>
+	<script src="js/Util.js"></script>
 	<script src="js/Atlas.js"></script>
 	<script src="js/ParticleSystem.js"></script>
-	<script src="js/ParticleSystemPresets.js"></script>			
+	<script src="js/ParticleSystemFrameset.js"></script>
 	<script src="../three.js/examples/js/loaders/OBJLoader.js"></script>
 	<script type='text/javascript' src='../three.js/examples/js/libs/dat.gui.min.js'></script>
 
@@ -23,15 +24,16 @@
 
 <script>
 
-	var PresetIDs = Object.freeze(
+	var ParticleSystemIDs = Object.freeze(
 	{
 		Sparks: 1,
 		Smoke: 2,
 		Flame: 3
 	});
 
+	var rendererContainer;
 	var screenWidth, screenHeight;
-	var particleSystem, rendererContainer, pointLight;
+	var particleSystem, particleSystems, pointLight, loadingManager;
 	var scene, camera, renderer, controls, stats, clock;
 	var currentSystemID;
 
@@ -42,80 +44,126 @@
 
 	});
 
-	var manager = new THREE.LoadingManager();
-	var texture = new THREE.Texture();
-
-	manager.onProgress = function ( item, loaded, total ) {
-
-		console.log( item, loaded, total );
-
-	};
-
-	var onProgress = function ( xhr ) {
-
-		if ( xhr.lengthComputable ) {
-
-			var percentComplete = xhr.loaded / xhr.total * 100;
-			console.log( Math.round(percentComplete, 2) + '% downloaded' );
-
-		}
-
-	};
-
-	var onError = function ( xhr ) {
-
-	};
-
-	var loader = new THREE.ImageLoader( manager );
-	loader.load( 'models/Stuff01.png', function ( image ) {
-		texture.image = image;
-		texture.needsUpdate = true;
-	} );
-
-
-	var loader = new THREE.OBJLoader( manager );
-	loader.load( 'models/CamFire01.obj', function ( object ) {
-
-		object.traverse( function ( child ) {
-
-			if ( child instanceof THREE.Mesh ) {
-
-				child.material.map = texture;
-				child.castShadow = true;
-				child.receiveShadow = true;
-
-			}
-
-		} );
-
-		object.position.set(0,0,0);
-		object.scale.set(7,7,7);
-		object.castShadow = true;
-		object.receiveShadow = true;
-		scene.add( object );
-
-	}, onProgress, onError );
-
-
 	function init() 
 	{
 		clock = new THREE.Clock();		
 
 		getScreenDimensions();
 
+		Util.initializeLoadingManager();
 		initRenderer();
 		initScene();
 		initControls();
 		initStats();		
-		initParticleSystems();
 		initGUI();
 		initListeners();
+
+		initParticleSystems();
+		startParticleSystem ( ParticleSystemIDs.Flame );
 
 	}
 
 	function initParticleSystems() {
 
-		startParticleSystem ( PresetIDs.Flame );
+		particleSystems = {};
+
+		particleSystemPresetsSparks = {
+
+			zSort: true,
+
+			initialPositionRangeType : ParticleSystem.RangeType.Cube,
+			initialPositionOffset : new THREE.Vector3( 0,  5, 0 ),
+			initialPositionRange : new THREE.Vector3( 10, 0, 10 ),
+			
+			initialVelocityRangeType : ParticleSystem.RangeType.Cube,
+			initialVelocityOffset : new THREE.Vector3( 0,  160, 0 ),
+			initialVelocityRange : new THREE.Vector3( 100, 20, 100 ), 
+
+			initialAccelerationOffset : new THREE.Vector3( 0, -100, 0 ),
+			
+			particleAtlas : new Atlas( THREE.ImageUtils.loadTexture( 'images/star.png' ), true ),
+
+			initialRotationOffset : 0,
+			initialRotationRange  : 180,
+			initialAngularVelocityOffset : 100,
+			initialAngularVelocityRange : 360 * 4,
+			
+			atlasFrameSet: new ParticleSystem.FrameSet( [0, 3], [0, 0] ),
+			sizeFrameSet : new ParticleSystem.FrameSet( [ 0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0 ], 
+				                                           [ new THREE.Vector3( 1, 1 ), new THREE.Vector3( 3, 1.5 ),  new THREE.Vector3( 2, 4 ),  new THREE.Vector3( 5, 2.5 ), new THREE.Vector3( 3, 6 ), new THREE.Vector3( 7, 3.5 ), new THREE.Vector3( 4, 8 ) ] ),
+			alphaFrameSet : new ParticleSystem.FrameSet( [2, 3], [1, 0] ),
+			colorFrameSet : new ParticleSystem.FrameSet( [0.0, 1.0, 2], [ new THREE.Vector3(1.0,1.0,0.0), new THREE.Vector3(1.0, 0.0, 0.0), new THREE.Vector3(0.6, 0.0, 0.0) ] ),
+
+			particleReleaseRate : 200,
+			particleLifeSpan : 3.0,		
+			emitterDeathAge : 60
+
+		};
+		particleSystems[ ParticleSystemIDs.Sparks ] = new ParticleSystem();
+		particleSystems[ ParticleSystemIDs.Sparks ].initialize( camera, particleSystemPresetsSparks );
+
+		particleSystemPresetsSmoke = {
+
+			zSort: true,
+
+			initialPositionRangeType : ParticleSystem.RangeType.Sphere,
+			initialPositionOffset : new THREE.Vector3( 0, 0, 0 ),
+			initialPositionRange : new THREE.Vector3( 10, 0, 10 ),
+
+			initialVelocityRangeType : ParticleSystem.RangeType.Sphere,
+			initialVelocityOffset : new THREE.Vector3( 0, 75, 0 ),
+			initialVelocityRange : new THREE.Vector3( 30, 25, 30 ), 
+			initialAccelerationOffset : new THREE.Vector3( 0,-10,0 ),
+			
+			particleAtlas : new Atlas( THREE.ImageUtils.loadTexture( 'images/smokeparticle.png' ), true ),
+
+			initialRotationOffset : 0,
+			initialRotationRange : 360,
+			initialAngularVelocityOffset : 50,
+			initialAngularVelocityRange : 400,
+
+			atlasFrameSet: new ParticleSystem.FrameSet( [0, 4], [0, 0] ),		
+			sizeFrameSet : new ParticleSystem.FrameSet( [0, 4], [ new THREE.Vector2( 10, 10 ), new THREE.Vector2( 50, 50 ) ] ),
+			alphaFrameSet : new ParticleSystem.FrameSet( [0, 0.6, 4], [0.0, 0.5, 0.0] ),
+			colorFrameSet : new ParticleSystem.FrameSet( [0.0, 1.5, 4], [ new THREE.Vector3( 0.1, 0.1, 0.1 ), new THREE.Vector3( 0.35, 0.35, 0.35 ), new THREE.Vector3( 0.7, 0.7, 0.7 ) ] ),
+
+			particleReleaseRate : 200,
+			particleLifeSpan : 4.0,		
+			emitterDeathAge : 60
+
+		};
+		particleSystems[ ParticleSystemIDs.Smoke ] = new ParticleSystem();
+		particleSystems[ ParticleSystemIDs.Smoke ].initialize( camera, particleSystemPresetsSmoke );
+
+		particleSystemPresetsFlame = {
+
+			initialPositionRangeType : ParticleSystem.RangeType.Cube,
+			initialPositionOffset : new THREE.Vector3( 0, 7 , 0 ),
+			initialPositionRange : new THREE.Vector3( 3, 0, 3 ),
+			
+			initialVelocityRangeType : ParticleSystem.RangeType.Cube,
+			initialVelocityOffset : new THREE.Vector3(0,25,0),
+			initialVelocityRange : new THREE.Vector3(10,5,10),
+
+			initialRotationOffset : 0,
+			initialRotationRange : 0,
+
+			particleAtlas : Atlas.createGridAtlas( THREE.ImageUtils.loadTexture( 'images/fireloop3.jpg' ), 0.0, 1.0, 1.0, 0.0, 8.0, 8.0, false, true ),
+			
+			atlasFrameSet: new ParticleSystem.FrameSet( [0, 3], [0, 63] ),
+			sizeFrameSet : new ParticleSystem.FrameSet( [ 0, 3], [ new THREE.Vector3( 20, 25 ), new THREE.Vector3( 20, 25 ) ] ),
+			
+			alphaFrameSet : new ParticleSystem.FrameSet( [0, 0.2, 1.2, 2.0, 3], [ 0, .3, 1, 1, 0] ),
+			colorFrameSet : new ParticleSystem.FrameSet( [0, 3], [ new THREE.Vector3(1.4, 1.4, 1.4), new THREE.Vector3(1.4, 1.4, 1.4) ] ),
+			blendStyle : THREE.AdditiveBlending,  
+			
+			particleReleaseRate : 3,
+			particleLifeSpan : 3,		
+			emitterDeathAge : 60
+
+		};
+		particleSystems[ ParticleSystemIDs.Flame ] = new ParticleSystem();
+		particleSystems[ ParticleSystemIDs.Flame ].initialize( camera, particleSystemPresetsFlame );
 
 	}
 
@@ -124,9 +172,9 @@
 		gui = new dat.GUI();	
 		parameters = 
 		{
-			sparks:  function() { startParticleSystem( PresetIDs.Sparks ); },	
-			smoke:  function() { startParticleSystem( PresetIDs.Smoke ); },				
-			flame:  function() { startParticleSystem( PresetIDs.Flame ); }		
+			sparks:  function() { startParticleSystem( ParticleSystemIDs.Sparks ); },	
+			smoke:  function() { startParticleSystem( ParticleSystemIDs.Smoke ); },				
+			flame:  function() { startParticleSystem( ParticleSystemIDs.Flame ); }		
 		};
 
 		gui.add( parameters, 'sparks').name( "Sparks" );	
@@ -155,32 +203,49 @@
 
 	}
 
-	function initScene() {
-
-		camera = new THREE.PerspectiveCamera( 45, 1.0, 2, 2000 );
-		scene = new THREE.Scene();
-		scene.add(camera);
-		resetCamera();
+	function initLights() {
 
 		pointLight = new THREE.PointLight( 0xffffff, 2, 1000, 1);
 		pointLight.position.set(0,40,0);
 		pointLight.castShadow = true;
 		pointLight.shadowCameraNear = 1;
-		pointLight.shadowCameraFar = 10000;
-		pointLight.shadowDarkness = 0.7;
+		pointLight.shadowCameraFar = 1000;
+		pointLight.shadowDarkness = .8;
 		// pointLight.shadowCameraVisible = true;
 		pointLight.shadowMapWidth = 2048;
 		pointLight.shadowMapHeight = 1024;
 		pointLight.shadowBias = 0.0;
 		scene.add(pointLight);
 
-		var geometry = new THREE.SphereGeometry( 10, 32, 32 );
-		var material = new THREE.MeshLambertMaterial( { color: 0xffffff } );
-		var sphere = new THREE.Mesh( geometry, material );
+	}
+
+	function initSceneGeometry() {
+
+		Util.loadObj( 'models/CamFire01.obj', 'models/Stuff01.png', true, true, function( object ) {
+
+			object.position.set( 0, 0, 0 );
+			object.scale.set( 7, 7, 7 );
+			object.castShadow = true;
+			object.receiveShadow = true;
+			scene.add( object );
+
+		} );		
+
+		var sphereGeometry = new THREE.SphereGeometry( 10, 32, 32 );
+		var sphereMaterial = new THREE.MeshLambertMaterial( { color: 0xffffff } );
+		var sphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
 		sphere.castShadow = true;
 		sphere.receiveShadow = true;
-		sphere.position.set(-50, 35, 50);
+		sphere.position.set(-40, 10, 40);
 		scene.add( sphere );
+
+		var boxGeometry = new THREE.BoxGeometry( 20, 20, 20 );
+		var boxMaterial = new THREE.MeshLambertMaterial( { color: 0xffffff } );
+		var box = new THREE.Mesh( boxGeometry, boxMaterial );
+		box.castShadow = true;
+		box.receiveShadow = true;
+		box.position.set(-40, 10, -40);
+		scene.add( box );
 
 		var groundTexture = new THREE.ImageUtils.loadTexture( 'images/stoneground.png' );
 		groundTexture.wrapS = THREE.RepeatWrapping; 
@@ -204,6 +269,19 @@
 		groundMesh.receiveShadow = true;
 		scene.add(groundMesh);
 
+	}
+
+	function initScene() {
+
+		scene = new THREE.Scene();
+
+		camera = new THREE.PerspectiveCamera( 45, 1.0, 2, 2000 );
+		scene.add(camera);
+		resetCamera();
+
+		initLights();
+		initSceneGeometry();
+		
 	}
 
 	function initStats() {
@@ -239,7 +317,7 @@
 
 	}
 
-	var flickerPointLight = (function() {
+	var flickerPointLight = ( function() {
 
 		var lastAdjuster;
 
@@ -254,18 +332,19 @@
 
 			}
 
-			var intensity = 7;
+			var intensity = 6;
 			intensity += adjuster * 4;
 			pointLight.intensity = intensity;
 
-			pointLight.distance = adjuster * 70 + 200;
+			pointLight.distance = adjuster * 50 + 200;
 			pointLight.color.setRGB(1,.8,.2);
-			pointLight.decay = 2;
+			pointLight.decay = adjuster * 5 + 3;
 
 			lastAdjuster = adjuster;
 		}
 
 	})();
+
 
 	function startParticleSystem( id ) {
 
@@ -273,31 +352,30 @@
 		
 		if( particleSystem ){
 
-			particleSystem.destroy();
+			particleSystem.deactivate();
 
 		}
 
 		currentSystemID = id;
-		var params;
-		if( id == PresetIDs.Sparks ) {
+		if( id == ParticleSystemIDs.Sparks ) {
 
-			params = ParticleSystemPresets.Sparks;
+			particleSystem = particleSystems[ ParticleSystemIDs.Sparks ]; 
 			pointLight.distance = 1000;
 			pointLight.intensity = 1;
 			pointLight.color.setRGB( 1,1,1);
 			pointLight.decay = 2;
 
-		} else if( id == PresetIDs.Smoke ) {
+		} else if( id == ParticleSystemIDs.Smoke ) {
 			
-			params = ParticleSystemPresets.Smoke;
+			particleSystem = particleSystems[ ParticleSystemIDs.Smoke ]; 
 			pointLight.distance = 50000;
 			pointLight.intensity = 1;
 			pointLight.color.setRGB( 1,1,1);
 			pointLight.decay = 0;
 
-		} else if( id == PresetIDs.Flame ) {
+		} else if( id == ParticleSystemIDs.Flame ) {
 			
-			params = ParticleSystemPresets.Flame
+			particleSystem = particleSystems[ ParticleSystemIDs.Flame ];  
 			pointLight.distance = 300;
 			pointLight.intensity = 6;
 			pointLight.color.setRGB( 1, .7, 0);
@@ -308,8 +386,7 @@
 			return;
 		}
 
-		particleSystem = new ParticleSystem( camera );
-		particleSystem.initialize( params );
+		particleSystem.activate();
 
 	}
 
@@ -338,7 +415,7 @@
 		var deltaTime = clock.getDelta();
 		particleSystem.update( deltaTime );	
 
-		if ( currentSystemID == PresetIDs.Flame ) {
+		if ( currentSystemID == ParticleSystemIDs.Flame ) {
 
 			flickerPointLight();
 

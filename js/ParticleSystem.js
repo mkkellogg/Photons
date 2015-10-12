@@ -6,15 +6,14 @@
 // Particle system
 //=======================================
 
-function ParticleSystem( camera ) {
+function ParticleSystem() {
 	
-	this.camera = camera;
-
 	this.zSort = false;
 
 	this.releaseAtOnce = false;
 	this.releaseAtOnceCount = 0.0;
 	this.hasInitialReleaseOccurred = false;
+	this.active = false;
 
 	this.atlasFrameSet = undefined;
 	this.colorFrameSet = undefined;
@@ -241,7 +240,6 @@ ParticleSystem.prototype.initializeMesh = function () {
 
 	this.particleMesh = new THREE.Mesh( this.particleGeometry, this.particleMaterial );
 	this.particleMesh.dynamic = true;
-	scene.add( this.particleMesh );
 
 }
 
@@ -249,7 +247,6 @@ ParticleSystem.prototype.destroyMesh = function() {
 
 	if( this.particleMesh ) {
 
-		scene.remove( this.particleMesh );
 		this.particleMesh = undefined;
 
 	}
@@ -266,8 +263,10 @@ ParticleSystem.prototype.mergeParameters = function ( parameters ) {
 
 }
 
-ParticleSystem.prototype.initialize = function( parameters ) {
+ParticleSystem.prototype.initialize = function( camera, parameters ) {
 	
+	this.camera = camera;
+
 	this.atlasFrameSet = undefined;
 	this.sizeFrameSet = undefined;
 	this.colorFrameSet = undefined;
@@ -805,92 +804,26 @@ ParticleSystem.prototype.update = function() {
 	
 }();
 
-ParticleSystem.prototype.destroy = function() {
+ParticleSystem.prototype.deactivate = function() {
 
-    this.destroyMesh();
+	if( this.active ) { 
 
-}
+    	scene.remove( this.particleMesh );
+    	this.active = false;
 
-//=======================================
-// Particle system frame set
-//=======================================
-
-ParticleSystem.FrameSet = function ( timeFrames, valueFrames ) {
-
-	this.timeFrames = timeFrames || [];
-	this.valueFrames = valueFrames || [];
-
-}
-
-ParticleSystem.FrameSet.prototype.findNextFrameForTimeValue = function( t ) {
-
-	var frameIndex = 0;
-	while( frameIndex < this.timeFrames.length && this.timeFrames[ frameIndex ] < t ) {
-
-		frameIndex = frameIndex + 1;
-
-	}
-
-	return frameIndex;
-}
-
-ParticleSystem.FrameSet.prototype.lerpScalar = function( a, b, f ) {
-
-	return a + f * ( b - a );
-
-}
-
-ParticleSystem.FrameSet.prototype.calculateFraction = function( a, b, z ) {
-
-	return ( z - a ) / ( b - a );
-
-}
-
-ParticleSystem.FrameSet.prototype.interpolateFrameValuesScalar = function( t ) {
-
-	var nextFrameIndex = this.findNextFrameForTimeValue( t );
-	var currentFrameIndex = nextFrameIndex - 1;
-
-	if ( nextFrameIndex == 0 ) {
-
-		return this.valueFrames[ 0 ];
-
-	} else if ( nextFrameIndex == this.timeFrames.length ) {
-
-		return this.valueFrames[ currentFrameIndex ];
-
-	}
-
-	var fraction = this.calculateFraction( this.timeFrames[ currentFrameIndex ], this.timeFrames[ nextFrameIndex ], t );
-
-	return this.lerpScalar( this.valueFrames[currentFrameIndex], this.valueFrames[nextFrameIndex], fraction );
+    }
 
 }
 
 
-ParticleSystem.FrameSet.prototype.interpolateFrameValuesVector = function( t, target ) {
+ParticleSystem.prototype.activate = function() {
 
-	var nextFrameIndex = this.findNextFrameForTimeValue( t );
-	var currentFrameIndex = nextFrameIndex - 1;
+    if( ! this.active ) { 
 
-	if ( nextFrameIndex == 0 ) {
+    	scene.add( this.particleMesh );
+    	this.active = true;
 
-		target.copy( this.valueFrames[ 0 ] );
-
-	} else if ( nextFrameIndex == this.timeFrames.length ) {
-
-		target.copy( this.valueFrames[ currentFrameIndex ] );
-
-	} else {
-
-		var fraction = this.calculateFraction( this.timeFrames[ currentFrameIndex ], this.timeFrames[ nextFrameIndex ], t );
-
-		target.copy( this.valueFrames[currentFrameIndex] );
-		target.lerp( this.valueFrames[nextFrameIndex], fraction );
-
-	}
-
-	return target;
+    }
 
 }
 
@@ -918,4 +851,3 @@ ParticleSystem.Particle = function () {
 	this._tempVector3 = new THREE.Vector3();
 
 }
-
