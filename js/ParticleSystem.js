@@ -15,7 +15,7 @@ Particles.ParticleSystem = function() {
 	this.releaseAtOnce = false;
 	this.releaseAtOnceCount = 0.0;
 	this.hasInitialReleaseOccurred = false;
-	this.active = false;
+	this.isActive = false;
 
 	this.atlasFrameSet = undefined;
 	this.colorFrameSet = undefined;
@@ -23,24 +23,14 @@ Particles.ParticleSystem = function() {
 	this.sizeFrameSet = undefined;	
 
 	// Particle position and position modifiers (velocity and acceleration)
-	this.initialPositionRangeType = Particles.RangeType.Cube;		
-	this.initialPositionOffset = new THREE.Vector3();
-	this.initialPositionRange = new THREE.Vector3();
-	this.initialPositionRangeEdgeClamp = false;
-	this.initialVelocityRangeType = Particles.RangeType.Cube;	
-	this.initialVelocityOffset = new THREE.Vector3();
-	this.initialVelocityRange = new THREE.Vector3(); 
-	this.initialVelocityRangeEdgeClamp = false;	
-	this.initialAccelerationOffset = new THREE.Vector3();
-	this.initialAccelerationRange = new THREE.Vector3();	
+	this.positionModifer = undefined;	
+	this.velocityModifer = undefined;
+	this.accelerationModifer = undefined;	
 	
-	// Particle rotation and rotation modifiers (angulary velocity and angular acceleration)
-	this.initialRotationOffset = 0;
-	this.initialRotationRange = 0;
-	this.initialAngularVelocityOffset = 0;
-	this.initialAngularVelocityRange = 0;
-	this.initialAngularAccelerationOffset = 0;
-	this.initialAngularAccelerationRange = 0;		
+	// Particle rotation and rotation modifiers (rotational speed and rotational acceleration)
+	this.rotationModifier = undefined;
+	this.rotationalSpeedModifier = undefined;
+	this.rotationalAccelerationModifier = undefined;	
 
 	// blending style
 	this.blendStyle = THREE.CustomBlending;
@@ -71,21 +61,6 @@ Particles.ParticleSystem = function() {
 	this._tempQuaternion = new THREE.Quaternion();
 	this._tempMatrix4 = new THREE.Matrix4();
 }
-
-Particles.RangeType = Object.freeze( {
-
-	Cube: 1, 
-	Sphere: 2,
-	Plane: 3 
-
-} );
-
-Particles.Constants = Object.freeze( {
-
-	VerticesPerParticle: 6,
-	DegreesToRadians: Math.PI / 180.0
-
-} );
 
 //=======================================
 // Particle system shaders
@@ -261,6 +236,38 @@ Particles.ParticleSystem.prototype.mergeParameters = function ( parameters ) {
 
 		this[ key ] = parameters[ key ];
 
+	}
+
+}
+
+Particles.ParticleSystem.prototype.bindModifier = function( name, modifer ) {
+
+	modifer.reset();
+
+	if ( name == "rotation" ) {
+
+		this.rotationModifer = modifer;
+
+	} else if ( name == "rotationalSpeed" ) {
+
+		this.rotationalSpeedModifier = modifer;
+		
+	} else if ( name == "rotationalAcceleration" ) {
+
+		this.rotationalAccelerationModifier = modifer;
+		
+	} else if ( name == "position" ) {
+
+		this.positionModifer = modifer;
+
+	} else if ( name == "velocity" ) {
+
+		this.velocityModifier = modifer;
+		
+	} else if ( name == "acceleration" ) {
+
+		this.accelerationModifier = modifer;
+		
 	}
 
 }
@@ -444,51 +451,6 @@ Particles.ParticleSystem.prototype.updateAttributeScalar = function ( attribute,
 
 }
 
-Particles.ParticleSystem.prototype.getRandomScalar = function( base, range ) {
-
-	return base + range * (Math.random() - 0.5);
-
-}
-
-Particles.ParticleSystem.prototype.getRandomVector3Cube = function( vector, offset, range, edgeClamp ) {
-
-	vector.set( Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5 );
-
-	if ( edgeClamp ) {
-
-		var max = Math.max ( vector.x, Math.max ( vector.y, vector.z ) );
-		vecotr.multiplyScalar( 1.0 / max );
-
-	}
-
-	vector.multiplyVectors( range, vector );	
-	vector.addVectors( offset, vector );
-
-	return vector;
-
-}
-
-Particles.ParticleSystem.prototype.getRandomVector3Sphere = function( vector, offset, range, edgeClamp ) {
-
-	var x = Math.random() - 0.5;
-	var y = Math.random() - 0.5;
-	var z = Math.random() - 0.5;
-
-	vector.set( x, y, z );
-	vector.normalize().multiplyVectors( vector, range );
-	
-	if ( ! edgeClamp ) {
-
-		var adjust =  Math.random() * 2.0 - 1.0;
-		vector.multiplyScalar( adjust );
-	}
-
-	vector.addVectors(vector, offset );
-
-	return vector;
-
-}
-
 Particles.ParticleSystem.prototype.createParticle = function() {
 
 	var particle = new Particles.Particle();	
@@ -518,35 +480,53 @@ Particles.ParticleSystem.prototype.resetParticle = function( particle ) {
 
 Particles.ParticleSystem.prototype.resetParticlePositionData = function( particle ) {
 
-	if (this.initialPositionRangeType == Particles.RangeType.Cube) {
+	particle.position.set( 0, 0, 0 );
+	particle.velocity.set( 0, 0, 0 );
+	particle.acceleration.set( 0, 0, 0 );
 
-		this.getRandomVector3Cube( particle.position, this.initialPositionOffset, this.initialPositionRange,  this.initialPositionRangeEdgeClamp ); 
+	if( this.positionModifier ) {
 
-	} else if (this.initialPositionRangeType == Particles.RangeType.Sphere)	{
-
-		this.getRandomVector3Sphere( particle.position, this.initialPositionOffset, this.initialPositionRange,  this.initialPositionRangeEdgeClamp );
+		this.positionModifer.initialize( particle.position );
 
 	}
-		
-	if ( this.initialVelocityRangeType == Particles.RangeType.Cube ) {
 
-		this.getRandomVector3Cube( particle.velocity, this.initialVelocityOffset, this.initialVelocityRange, this.initialVelocityRangeEdgeClamp ); 
+	if( this.velocityModifier ) {
 
-	} else 	if ( this.initialVelocityRangeType == Particles.RangeType.Sphere ) {
+		this.velocityModifier.initialize( particle.velocity );
 
-		this.getRandomVector3Sphere( particle.velocity, this.initialVelocityOffset, this.initialVelocityRange, this.initialVelocityRangeEdgeClamp );
-		
 	}
-	
-	this.getRandomVector3Cube( particle.acceleration, this.initialAccelerationOffset, this.initialAccelerationRange ); 
+
+	if( this.accelerationModifier ) {
+
+		this.accelerationModifier.initialize( particle.acceleration );
+
+	}
 
 }
 
 Particles.ParticleSystem.prototype.resetParticleRotationData = function( particle ) {
 
-	particle.rotation  = this.getRandomScalar( this.initialRotationOffset, this.initialRotationRange );
-	particle.angularVelocity = this.getRandomScalar( this.initialAngularVelocityOffset, this.initialAngularVelocityRange );
-	particle.angularAcceleration = this.getRandomScalar( this.initialAngularAccelerationOffset, this.initialAngularAccelerationRange );
+	particle.rotation = 0;
+	particle.rotationalSpeed = 0;
+	particle.rotationalAcceleration = 0;
+
+	if( this.rotationModifier ) {
+
+		particle.rotation = this.rotationModifier.initialize();
+
+	}
+
+	if( this.rotationalSpeedModifier ) {
+
+		particle.rotationalSpeed = this.rotationalSpeedModifier.initialize();
+
+	}
+
+	if( this.rotationalAccelerationModifier ) {
+
+		particle.rotationalAcceleration = this.rotationalAccelerationModifier.initialize();
+
+	}
 
 }
 
@@ -556,40 +536,86 @@ Particles.ParticleSystem.prototype.advanceParticle = function( particle, deltaTi
 
 	if ( this.atlasFrameSet.timeFrames.length > 0 ) {
 
-		var index = this.atlasFrameSet.interpolateFrameValuesScalar( particle.age );
+		var index = this.atlasFrameSet.interpolateFrameValues( particle.age );
 		particle.atlasIndex = Math.floor(index);
 
 	}
 
 	if ( this.sizeFrameSet.timeFrames.length > 0 ) {
 
-		this.sizeFrameSet.interpolateFrameValuesVector( particle.age, particle.size );
+		this.sizeFrameSet.interpolateFrameValues( particle.age, particle.size );
 
 	}
 				
 	if ( this.colorFrameSet.timeFrames.length > 0 )	{
 
-		this.colorFrameSet.interpolateFrameValuesVector( particle.age, particle._tempVector3 );
+		this.colorFrameSet.interpolateFrameValues( particle.age, particle._tempVector3 );
 		particle.color.setRGB( particle._tempVector3.x, particle._tempVector3.y, particle._tempVector3.z );
 
 	}
 	
 	if ( this.alphaFrameSet.timeFrames.length > 0 ) {
 
-		particle.alpha = this.alphaFrameSet.interpolateFrameValuesScalar( particle.age );
+		particle.alpha = this.alphaFrameSet.interpolateFrameValues( particle.age );
 
 	}
 
-	particle._tempVector3.copy( particle.velocity );
-	particle._tempVector3.multiplyScalar(deltaTime);
-	particle.position.add( particle._tempVector3 );
 
-	particle._tempVector3.copy( particle.acceleration );
-	particle._tempVector3.multiplyScalar(deltaTime);
-	particle.velocity.add( particle._tempVector3 );
+	if( this.positionModifier && ! this.positionModifier.runOnce ) {
+
+		this.positionModifer.getValue( particle.position );
+
+	} else {
+
+		particle._tempVector3.copy( particle.velocity );
+		particle._tempVector3.multiplyScalar(deltaTime);
+		particle.position.add( particle._tempVector3 );
+
+	}
+
+	if( this.velocityModifier && ! this.velocityModifier.runOnce ) {
+
+		this.velocityModifier.getValue( particle.velocity );
+
+	} else {
+
+		particle._tempVector3.copy( particle.acceleration );
+		particle._tempVector3.multiplyScalar(deltaTime);
+		particle.velocity.add( particle._tempVector3 );
+
+	}
+
+	if( this.accelerationModifier && ! this.accelerationModifier.runOnce ) {
+
+		this.accelerationModifier.getValue( particle.acceleration );
+
+	}
 	
-	particle.rotation  += particle.angularVelocity * deltaTime;
-	particle.angularVelocity += particle.angularAcceleration * deltaTime;
+	if( this.rotationModifier && ! this.rotationModifier.runOnce ) {
+
+		particle.rotation = this.rotationModifier.getValue();
+
+	} else {
+
+		particle.rotation  += particle.rotationalSpeed * deltaTime;
+
+	}
+
+	if( this.rotationalSpeedModifier && ! this.rotationalSpeedModifier.runOnce ) {
+
+		particle.rotationalSpeed = this.rotationalSpeedModifier.getValue();
+
+	} else {
+
+		particle.rotationalSpeed += particle.rotationalAcceleration * deltaTime;
+
+	}	
+	
+	if( this.rotationalAccelerationModifier && ! this.rotationalAccelerationModifier.runOnce ) {
+
+		particle.rotationalAcceleration = this.rotationalAccelerationModifier.getValue();
+
+	} 
 
 }
 
@@ -752,7 +778,8 @@ Particles.ParticleSystem.prototype.update = function() {
 
 	return function update( deltaTime ) {
 
-		if ( !this.emitting ) return;
+		if( ! this.emitting )return;
+		if( ! this.isActive )return;
 
 		this.timeSinceLastEmit += deltaTime;
 
@@ -808,10 +835,10 @@ Particles.ParticleSystem.prototype.update = function() {
 
 Particles.ParticleSystem.prototype.deactivate = function() {
 
-	if( this.active ) { 
+	if( this.isActive ) { 
 
     	scene.remove( this.particleMesh );
-    	this.active = false;
+    	this.isActive = false;
 
     }
 
@@ -820,10 +847,10 @@ Particles.ParticleSystem.prototype.deactivate = function() {
 
 Particles.ParticleSystem.prototype.activate = function() {
 
-    if( ! this.active ) { 
+    if( ! this.isActive ) { 
 
     	scene.add( this.particleMesh );
-    	this.active = true;
+    	this.isActive = true;
 
     }
 
@@ -847,8 +874,8 @@ Particles.Particle = function () {
 	this.acceleration = new THREE.Vector3();
 
 	this.rotation = 0;
-	this.angularVelocity = 0; 
-	this.angularAcceleration = 0;
+	this.rotationalSpeed = 0; 
+	this.rotationalAcceleration = 0;
 
 	this._tempVector3 = new THREE.Vector3();
 

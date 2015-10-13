@@ -20,7 +20,7 @@ var Util = {
 	},
 
 
-	loadObj: function( objFile, textureFile, castShadow, receiveShadow, onLoadComplete ) {
+	loadObj: function( objFile, textureFile, material, onMesh, onLoadComplete ) {
 
 		var onProgress = function ( xhr ) {
 
@@ -63,10 +63,14 @@ var Util = {
 
 				if ( child instanceof THREE.Mesh ) {
 
+					child.material = material;
 					child.material.map = texture;
-					child.castShadow = castShadow;
-					child.receiveShadow = receiveShadow;
 
+					if ( onMesh ) {
+
+						onMesh ( child );
+
+					}
 				}
 
 			} );

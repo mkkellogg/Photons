@@ -4,10 +4,11 @@
 
 var Particles = Particles || {};
 
-Particles.FrameSet = function ( timeFrames, valueFrames ) {
+Particles.FrameSet = function ( timeFrames, valueFrames, isScalar ) {
 
 	this.timeFrames = timeFrames || [];
 	this.valueFrames = valueFrames || [];
+	this.isScalar = isScalar !== undefined && isScalar !== null ? isScalar : true ;
 
 }
 
@@ -35,49 +36,53 @@ Particles.FrameSet.prototype.calculateFraction = function( a, b, z ) {
 
 }
 
-Particles.FrameSet.prototype.interpolateFrameValuesScalar = function( t ) {
+Particles.FrameSet.prototype.interpolateFrameValues = function( t, target ) {
 
 	var nextFrameIndex = this.findNextFrameForTimeValue( t );
 	var currentFrameIndex = nextFrameIndex - 1;
 
 	if ( nextFrameIndex == 0 ) {
 
-		return this.valueFrames[ 0 ];
+		if( this.isScalar ) {
+
+			return this.valueFrames[ 0 ];
+
+		} else {
+
+			target.copy( this.valueFrames[ 0 ] );
+			return target;
+		}
 
 	} else if ( nextFrameIndex == this.timeFrames.length ) {
 
-		return this.valueFrames[ currentFrameIndex ];
+		if( this.isScalar ) {
 
-	}
+			return this.valueFrames[ currentFrameIndex ];
 
-	var fraction = this.calculateFraction( this.timeFrames[ currentFrameIndex ], this.timeFrames[ nextFrameIndex ], t );
+		} else {
 
-	return this.lerpScalar( this.valueFrames[currentFrameIndex], this.valueFrames[nextFrameIndex], fraction );
+			target.copy( this.valueFrames[ currentFrameIndex ] );
+			return target;
 
-}
-
-Particles.FrameSet.prototype.interpolateFrameValuesVector = function( t, target ) {
-
-	var nextFrameIndex = this.findNextFrameForTimeValue( t );
-	var currentFrameIndex = nextFrameIndex - 1;
-
-	if ( nextFrameIndex == 0 ) {
-
-		target.copy( this.valueFrames[ 0 ] );
-
-	} else if ( nextFrameIndex == this.timeFrames.length ) {
-
-		target.copy( this.valueFrames[ currentFrameIndex ] );
+		}
 
 	} else {
 
 		var fraction = this.calculateFraction( this.timeFrames[ currentFrameIndex ], this.timeFrames[ nextFrameIndex ], t );
 
-		target.copy( this.valueFrames[currentFrameIndex] );
-		target.lerp( this.valueFrames[nextFrameIndex], fraction );
+		if( this.isScalar ) {
+
+			return this.lerpScalar( this.valueFrames[currentFrameIndex], this.valueFrames[nextFrameIndex], fraction );
+
+		} else {
+
+			target.copy( this.valueFrames[currentFrameIndex] );
+			target.lerp( this.valueFrames[nextFrameIndex], fraction );
+
+			return target;
+
+		}
 
 	}
-
-	return target;
 
 }
