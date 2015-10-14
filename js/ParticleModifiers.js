@@ -4,7 +4,6 @@
 
 var Particles = Particles || {};
 
-
 //=======================================
 // Base Modifier
 //=======================================
@@ -21,7 +20,6 @@ Particles.Modifier.prototype.reset = function () {
 	this.hasRun = false;
 
 }
-
 
 //=======================================
 // Random Modifier

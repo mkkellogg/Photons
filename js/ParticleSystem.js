@@ -161,13 +161,6 @@ Particles.ParticleSystem.prototype.initializeGeometry = function () {
 
 Particles.ParticleSystem.prototype.initializeMaterial = function () {
 
-	var depthTest = true;
-	if( this.blendStyle == THREE.AdditiveBlending ) {
-
-	//	depthTest = false;
-
-	}
-
 	this.particleMaterial = new THREE.ShaderMaterial( 
 	{
 		uniforms: 
@@ -189,7 +182,7 @@ Particles.ParticleSystem.prototype.initializeMaterial = function () {
 		//side: THREE.DoubleSide,
 		//side: THREE.BackSide,
 
-		depthTest: depthTest,
+		depthTest: true,
 		depthWrite: false
 	});
 
@@ -287,10 +280,10 @@ Particles.ParticleSystem.prototype.initialize = function( camera, parameters ) {
 
 	}
 
-	if( !this.atlasFrameSet ) this.atlasFrameSet = new Particles.FrameSet();
-	if( !this.sizeFrameSet ) this.sizeFrameSet = new Particles.FrameSet();
-	if( !this.colorFrameSet ) this.colorFrameSet = new Particles.FrameSet();
-	if( !this.alphaFrameSet ) this.alphaFrameSet = new Particles.FrameSet();
+	if( ! this.atlasFrameSet ) this.atlasFrameSet = new Particles.FrameSet();
+	if( ! this.sizeFrameSet ) this.sizeFrameSet = new Particles.FrameSet();
+	if( ! this.colorFrameSet ) this.colorFrameSet = new Particles.FrameSet();
+	if( ! this.alphaFrameSet ) this.alphaFrameSet = new Particles.FrameSet();
 
 	this.liveParticleArray = [];
 	this.timeSinceLastEmit = 0.0;
@@ -466,12 +459,13 @@ Particles.ParticleSystem.prototype.initializeParticle = function( particle ) {
 
 Particles.ParticleSystem.prototype.resetParticle = function( particle ) {
 
+	particle.age = 0;
+	particle.alive = 0; 
+
 	particle.size.set( 0, 0 );
 	particle.color.set( 0, 0, 0 );
-	particle.alpha = 1.0;			
-	particle.age = 0;
+	particle.alpha = 1.0;
 	this.atlasIndex = 0;
-	particle.alive = 0; 
 
 	this.resetParticlePositionData( particle );
 	this.resetParticleRotationData( particle );	
@@ -843,7 +837,6 @@ Particles.ParticleSystem.prototype.deactivate = function() {
     }
 
 }
-
 
 Particles.ParticleSystem.prototype.activate = function() {
 

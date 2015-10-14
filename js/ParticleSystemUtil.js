@@ -2,8 +2,7 @@
 * @author Mark Kellogg
 */
 
-
-var Util = {
+var ParticleSystemUtil = {
 
 	loadingManager: undefined,
 	objLoader: undefined,
