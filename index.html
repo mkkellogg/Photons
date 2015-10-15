@@ -28,10 +28,15 @@
 
 	var ParticleSystemIDs = Object.freeze(
 	{
-		Sparks: 1,
-		Smoke: 2,
+		Smoke1: 1,
+		Smoke2: 2,
 		Flame: 3,
 		FlameEmbers: 4
+	});
+
+	var ParticleEnvironmentIDs = Object.freeze(
+	{
+		Campfire: 1
 	});
 
 	var rendererContainer;
@@ -39,85 +44,205 @@
 	var pointLight, ambientLight;
 	var particleSystems, loadingManager;
 	var scene, camera, renderer, controls, stats, clock;
-	var currentSystemID;
+	var currentEnvironmentID;
+	var smokeActive, smokeType;
 
 	$( document ).ready( function() {
 
-		init();
-		animate();
+		init();		
 
 	});
 
-	function init() 
-	{
+	function init() {
+
 		clock = new THREE.Clock();		
 
 		getScreenDimensions();
-
-		ParticleSystemUtil.initializeLoadingManager();
+		
 		initRenderer();
 		initScene();
-		initControls();
+		initControls();		
 		initStats();		
 		initGUI();
 		initListeners();
 
-		initParticleSystems();
-		startParticleSystem ( ParticleSystemIDs.Flame );
+		initLights();
+		ParticleSystemUtil.initializeLoadingManager();
+		initSceneGeometry( function() {
+
+			initParticleSystems();
+			startParticleSystemEnvironment ( ParticleEnvironmentIDs.Campfire );
+			animate();
+			
+		});		
 
 	}
 
 	function initParticleSystems() {
 
 		particleSystems = {};
-
-		initializeSmokeSystem();
-		initializeFlameSystem();		
+		initializeFlameSystem();	
+		initializeSmokeSystem();	
 
 	}
 
 	function initializeSmokeSystem() {
 
-		var particleSystemParams = {
+		smokeType = ParticleSystemIDs.Smoke1;
+
+		var smoke1Atlas = new Atlas( THREE.ImageUtils.loadTexture( 'images/smokeparticle.png' ), true );
+		var smoke2Atlas = Atlas.createGridAtlas( THREE.ImageUtils.loadTexture( 'images/smokeparticles.png' ), 0.0, 1.0, 1.0, 0.0, 4.0, 4.0, false, true );
+
+		var altVertexShader = [
+
+			"attribute vec4 customColor;",
+			"attribute vec3 customNormal;",
+			"varying vec2 vUV;",
+			"varying vec4 vColor;",
+			"varying vec4 vPosition;", 
+
+			"void main()",
+			"{",
+				"vColor = customColor;",	
+				"vUV = uv;",
+				"vPosition = modelViewMatrix * vec4( position, 1.0 );",
+				"gl_Position = projectionMatrix * vPosition;",
+			"}"
+
+		].join("\n");
+
+		var altFragmentShader = [
+
+			"varying vec2 vUV;",
+			"varying vec4 vColor;", 
+			"varying vec4 vPosition;", 
+			"uniform sampler2D texture;",
+
+			THREE.ShaderChunk[ "common" ],
+
+			"uniform vec3 pointLightColor[MAX_POINT_LIGHTS];",
+			"uniform vec3 pointLightPosition[MAX_POINT_LIGHTS];",
+			"uniform float pointLightDistance[MAX_POINT_LIGHTS];",
+			"uniform float pointLightDecay[MAX_POINT_LIGHTS];",
+
+			"void main()", 
+			"{", 
+
+				"vec4 textureColor = texture2D( texture, vUV );",
+				"vec4 viewPosition = -vPosition;",
+				"vec3 outgoingLight = vec3( 0.0 );",
+				"vec4 diffuseColor = vColor * textureColor;",
+				
+				"vec3 totalDiffuseLight = vec3( 0.0 );",
+
+				"#if MAX_POINT_LIGHTS > 0",
+					"for ( int i = 0; i < MAX_POINT_LIGHTS; i ++ ) {",
+						"vec3 lightColor = pointLightColor[ i ];",
+						"vec3 lightPosition = pointLightPosition[ i ];",
+						"vec3 lVector = lightPosition + viewPosition.xyz;",
+						"vec3 lightDir = normalize( lVector );",
+						"float attenuation = calcLightAttenuation( length( lVector ), pointLightDistance[ i ], pointLightDecay[ i ] );",
+						"totalDiffuseLight += lightColor * attenuation;",
+					"}",
+				"#endif",
+
+				"gl_FragColor = diffuseColor * vec4( totalDiffuseLight, 1.0 );",    
+			"}"
+
+		].join("\n");
+
+		var customUniforms1 = THREE.UniformsUtils.merge([ THREE.UniformsLib['lights'] ]);
+		customUniforms1.texture = { type: "t", value: smoke1Atlas.getTexture() };
+		var altMaterial1 = new THREE.ShaderMaterial( 
+		{
+			uniforms: customUniforms1,
+
+			vertexShader:   altVertexShader,
+			fragmentShader: altFragmentShader,
+			lights: true,
+
+			transparent: true,  
+			alphaTest: 0.5, 
+
+			blending: THREE.CustomBlending, 
+			blendSrc: THREE.SrcAlphaFactor,
+			blendDst: THREE.OneMinusSrcAlphaFactor,
+			blendEquation: THREE.AddEquation,
+
+			depthTest: true,
+			depthWrite: false
+		});
+
+		var customUniforms2 = THREE.UniformsUtils.merge([ THREE.UniformsLib['lights'] ]);
+		customUniforms2.texture = { type: "t", value: smoke2Atlas.getTexture() };
+		var altMaterial2 = altMaterial1.clone();
+		altMaterial2.uniforms = customUniforms2;
+
+		var particleSystemParams1 = {
+
+			altMaterial: altMaterial1,
 
 			zSort: true,
 
-			particleAtlas : new Atlas( THREE.ImageUtils.loadTexture( 'images/smokeparticle.png' ), true ),
+			particleAtlas : smoke1Atlas,
 
-			atlasFrameSet: new Particles.FrameSet( [0, 4], [0, 0], true ),		
+			atlasFrameSet: new Particles.FrameSet( [0, 4], [0, 0], true ),			
 			sizeFrameSet : new Particles.FrameSet( [0, 4], [ new THREE.Vector2( 10, 10 ), new THREE.Vector2( 50, 50 ) ], false ),
-			alphaFrameSet : new Particles.FrameSet( [0, 0.6, 4], [0.0, 0.5, 0.0], true ),
+			alphaFrameSet : new Particles.FrameSet( [0, 1.0, 4], [0.0, 0.1, 0.0], true ),
 			colorFrameSet : new Particles.FrameSet( [0.0, 1.5, 4], [ new THREE.Vector3( 0.1, 0.1, 0.1 ), new THREE.Vector3( 0.35, 0.35, 0.35 ), new THREE.Vector3( 0.7, 0.7, 0.7 ) ], false ),
 
-			particleReleaseRate : 200,
+			particleReleaseRate : 150,
 			particleLifeSpan : 4.0,		
 			lifespan : 0
 
 		};
-		var particleSystem = new Particles.ParticleSystem();
-		particleSystem.initialize( camera, particleSystemParams );
 
-		particleSystem.bindModifier( 'position', new Particles.RandomModifier( 
+		var particleSystemParams2 = {
+
+			altMaterial: altMaterial2,
+
+			zSort: true,
+
+			particleAtlas : smoke2Atlas,
+
+			atlasFrameSet: new Particles.FrameSet( [0, 4], [0, 15], true ),		
+			sizeFrameSet : new Particles.FrameSet( [0, 4], [ new THREE.Vector2( 10, 10 ), new THREE.Vector2( 50, 50 ) ], false ),
+			alphaFrameSet : new Particles.FrameSet( [0, 1.0, 4], [0.0, 0.1, 0.0], true ),
+			colorFrameSet : new Particles.FrameSet( [0.0, 1.5, 4], [ new THREE.Vector3( 0.1, 0.1, 0.1 ), new THREE.Vector3( 0.35, 0.35, 0.35 ), new THREE.Vector3( 0.7, 0.7, 0.7 ) ], false ),
+
+			particleReleaseRate : 150,
+			particleLifeSpan : 4.0,		
+			lifespan : 0
+
+		};
+
+		var particleSystem1 = new Particles.ParticleSystem();
+		particleSystem1.initialize( camera, particleSystemParams1 );	
+
+		var particleSystem2 = new Particles.ParticleSystem();
+		particleSystem2.initialize( camera, particleSystemParams2 );	
+
+		var positionModifier =  new Particles.RandomModifier( 
 		{ 
 			isScalar: false, 
-			offset: new THREE.Vector3( 0,  0, 0 ), 
+			offset: new THREE.Vector3( 0, 0, 0 ), 
 			range: new THREE.Vector3( 10, 0, 10 ), 
 			rangeEdgeClamp: false, 
 			rangeType: Particles.RangeType.Sphere, 
 			runOnce: true
-		} ) );
+		} );
 
-		particleSystem.bindModifier( 'velocity', new Particles.RandomModifier( 
+		var velocityModifier = new Particles.RandomModifier( 
 		{ 
 			isScalar: false, 
 			offset: new THREE.Vector3( 0, 75, 0 ), 
-			range: new THREE.Vector3( 30, 25, 30 ), 
+			range: new THREE.Vector3( 25, 25, 25 ), 
 			rangeEdgeClamp: false, 
 			rangeType: Particles.RangeType.Sphere, 
 			runOnce: true
-		} ) );
+		} );
 
-		particleSystem.bindModifier( 'acceleration', new Particles.RandomModifier( 
+		var accelerationModifier = new Particles.RandomModifier( 
 		{ 
 			isScalar: false, 
 			offset: new THREE.Vector3( 0, -10, 0 ), 
@@ -125,25 +250,38 @@
 			rangeEdgeClamp: false, 
 			rangeType: Particles.RangeType.Cube, 
 			runOnce: true
-		} ) );
+		} );
 
-		particleSystem.bindModifier( 'rotation', new Particles.RandomModifier( 
+		var rotationModifier = new Particles.RandomModifier( 
 		{ 
 			isScalar: true, 
 			offset: 0, 
 			range: 360, 
 			runOnce: true
-		} ) );
+		} );
 
-		particleSystem.bindModifier( 'rotationalSpeed', new Particles.RandomModifier( 
+		var rotationalSpeedModifier = new Particles.RandomModifier( 
 		{ 
 			isScalar: true, 
 			offset: 50, 
 			range: 400, 
 			runOnce: true
-		} ) );
+		} );
 
-		particleSystems[ ParticleSystemIDs.Smoke ] = particleSystem;	
+		particleSystem1.bindModifier( 'position', positionModifier );
+		particleSystem1.bindModifier( 'velocity', velocityModifier );
+		particleSystem1.bindModifier( 'acceleration', accelerationModifier );
+		particleSystem1.bindModifier( 'rotation', rotationModifier );
+		particleSystem1.bindModifier( 'rotationalSpeed', rotationalSpeedModifier );
+
+		particleSystem2.bindModifier( 'position', positionModifier );
+		particleSystem2.bindModifier( 'velocity', velocityModifier );
+		particleSystem2.bindModifier( 'acceleration', accelerationModifier );
+		particleSystem2.bindModifier( 'rotation', rotationModifier );
+		particleSystem2.bindModifier( 'rotationalSpeed', rotationalSpeedModifier );
+
+		particleSystems[ ParticleSystemIDs.Smoke1 ] = particleSystem1;	
+		particleSystems[ ParticleSystemIDs.Smoke2 ] = particleSystem2;	
 
 	}
 
@@ -174,8 +312,8 @@
 		particleSystem.bindModifier( 'position', new Particles.RandomModifier( 
 		{ 
 			isScalar: false, 
-			offset: new THREE.Vector3( 0,  7, 0 ), 
-			range: new THREE.Vector3( 3, 0, 3 ), 
+			offset: new THREE.Vector3( 0,  0, 0 ), 
+			range: new THREE.Vector3( 0, 0, 0 ), 
 			rangeEdgeClamp: false, 
 			rangeType: Particles.RangeType.Sphere, 
 			runOnce: true
@@ -254,12 +392,21 @@
 		gui = new dat.GUI();	
 		parameters = 
 		{
-			smoke:  function() { startParticleSystem( ParticleSystemIDs.Smoke ); },				
-			flame:  function() { startParticleSystem( ParticleSystemIDs.Flame ); }		
+			smoke:  function() { smokeActive = !smokeActive; updateSmokeType(); },	
+			smokeType:  null,					
+			embers:  function() { toggleParticleSystem( ParticleSystemIDs.FlameEmbers ); },	
+			flame:  function() { toggleParticleSystem( ParticleSystemIDs.Flame ); },	
 		};
 
-		gui.add( parameters, 'smoke' ).name( "Smoke" );
-		gui.add( parameters, 'flame' ).name( "Flame" );		
+		gui.add(parameters, 'smokeType', { Basic: ParticleSystemIDs.Smoke1, Animated: ParticleSystemIDs.Smoke2 } ).name( "Smoke type" ).onChange( function () {
+			
+			smokeType = parameters.smokeType;
+			updateSmokeType();
+
+		});
+		gui.add( parameters, 'smoke' ).name( "Toggle smoke" );	
+		gui.add( parameters, 'embers' ).name( "Toggle embers" );	
+		gui.add( parameters, 'flame' ).name( "Toggle flame" );	
 		gui.open();
 
 	}
@@ -301,7 +448,49 @@
 
 	}
 
-	function initSceneGeometry() {
+	function initSceneGeometry( onFinished ) {
+
+		var loadedCount = 0;
+		var targetLoadCount = 3;
+		var onFinishedCalled = false;
+
+		function incrementAndCheckLoadComplete() {
+
+			loadedCount++;
+
+			if( ! onFinishedCalled && loadedCount >= targetLoadCount && onFinished) {
+
+				onFinishedCalled = true;
+				onFinished();
+			}
+
+		}
+
+		// ---------------------
+        // create ground
+        // ---------------------
+
+        var groundTexture = new THREE.ImageUtils.loadTexture( 'images/grass1.jpg' );
+        groundTexture.wrapS = THREE.RepeatWrapping; 
+        groundTexture.wrapT = THREE.RepeatWrapping; 
+        groundTexture.repeat.set( 10, 10 );
+
+        var groundMaterial = new THREE.MeshLambertMaterial( {
+
+                color: 0xffffff,
+                shading: THREE.SmoothShading,
+                map: groundTexture,
+                vertexColors: THREE.NoColors,
+                side: THREE.BackSide
+
+        } );
+
+        var groundGeometry = new THREE.PlaneGeometry( 1000, 1000, 30, 30 );
+        var groundMesh = new THREE.Mesh( groundGeometry, groundMaterial );
+        groundMesh.position.y = 0;
+        groundMesh.rotation.x = Math.PI / 2.0;
+        groundMesh.receiveShadow = true;
+        scene.add(groundMesh);
 
 		// ---------------------
 		// load campfire
@@ -323,6 +512,8 @@
 				object.position.set( 0, 0, 0 ); 
 				object.scale.set( 7, 7, 7 ); 
 				scene.add( object ); 
+
+				incrementAndCheckLoadComplete();
 			}
 
 		);
@@ -362,6 +553,8 @@
 				rockObject3.position.set( 45, 10, 45 ); 
 				rockObject3.scale.set( .65, .65, .85 ); 
 				scene.add( rockObject3 ); 
+				
+				incrementAndCheckLoadComplete();
 
 			} 
 
@@ -398,35 +591,11 @@
 				treeObject2.scale.set( .855, .855, .855 ); 
 				scene.add( treeObject2 ); 
 
+				incrementAndCheckLoadComplete();
+
 			} 
 
 		);
-
-		// ---------------------
-		// create ground
-		// ---------------------
-
-		var groundTexture = new THREE.ImageUtils.loadTexture( 'images/grass1.jpg' );
-		groundTexture.wrapS = THREE.RepeatWrapping; 
-		groundTexture.wrapT = THREE.RepeatWrapping; 
-		groundTexture.repeat.set( 10, 10 );
-
-		var groundMaterial = new THREE.MeshLambertMaterial( {
-
-                color: 0xffffff,
-                shading: THREE.SmoothShading,
-                map: groundTexture,
-                vertexColors: THREE.NoColors,
-                side: THREE.BackSide
-
-        } );
-
-		var groundGeometry = new THREE.PlaneGeometry( 1000, 1000, 30, 30 );
-		var groundMesh = new THREE.Mesh( groundGeometry, groundMaterial );
-		groundMesh.position.y = 0;
-		groundMesh.rotation.x = Math.PI / 2.0;
-		groundMesh.receiveShadow = true;
-		scene.add(groundMesh);
 
 	}
 
@@ -437,9 +606,6 @@
 		camera = new THREE.PerspectiveCamera( 45, 1.0, 2, 2000 );
 		scene.add(camera);
 		resetCamera();
-
-		initLights();
-		initSceneGeometry();
 		
 	}
 
@@ -495,8 +661,37 @@
 
 	})();
 
+	function updateSmokeType() {
 
-	function startParticleSystem( id ) {
+		particleSystems[ ParticleSystemIDs.Smoke1 ].deactivate();
+		particleSystems[ ParticleSystemIDs.Smoke2 ].deactivate();
+
+		if( smokeActive ) {			
+
+			particleSystems[ smokeType ].activate();
+
+		}
+	}
+
+	function toggleParticleSystem( id ) {
+
+		if( particleSystems[ id ]) {
+
+			if( particleSystems[ id ].isActive ) {
+
+				particleSystems[ id ].deactivate();
+
+			} else {
+				
+				particleSystems[ id ].activate();
+
+			}
+
+		}
+
+	}
+
+	function startParticleSystemEnvironment( id ) {
 
 		resetCamera();	
 
@@ -507,22 +702,13 @@
 
 		});
 
-		currentSystemID = id;
-		if( id == ParticleSystemIDs.Smoke ) {
+		currentEnvironmentID = id;
+		if( id == ParticleEnvironmentIDs.Campfire ) {
 			
-			particleSystems[ ParticleSystemIDs.Smoke ].activate(); 
-			pointLight.distance = 0;
-			pointLight.intensity = 1;
-			pointLight.color.setRGB( 1,1,1);
-			pointLight.decay = 0;
-			pointLight.position.set(0,140,0);
-
-			ambientLight.color.setRGB( .3, .3, .3 );
-
-		} else if( id == ParticleSystemIDs.Flame ) {
-			
+			smokeActive = true;
 			particleSystems[ ParticleSystemIDs.Flame ].activate();  
 			particleSystems[ ParticleSystemIDs.FlameEmbers ].activate();  
+			updateSmokeType();
 			pointLight.distance = 300;
 			pointLight.intensity = 6;
 			pointLight.color.setRGB( 1, .8, .4);
@@ -570,7 +756,7 @@
 
 		});
 
-		if ( currentSystemID == ParticleSystemIDs.Flame ) {
+		if ( currentEnvironmentID == ParticleEnvironmentIDs.Campfire ) {
 
 			flickerPointLight();
 
@@ -588,7 +774,7 @@
 
 	function update() {
 
-		controls.update();
+		//controls.update();
 		stats.update();	
 		updateParticleSystems();		
 

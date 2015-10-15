@@ -38,49 +38,53 @@ var ParticleSystemUtil = {
 
 		};
 
-		var texture = new THREE.Texture();
-		if ( ! this.imageLoader ) {
-
-			this.imageLoader = new THREE.ImageLoader( this.loadingManager );
-
-		}		
-		this.imageLoader.load( textureFile, function ( image ) {
-
-			texture.image = image;
-			texture.needsUpdate = true;
-
-		} );
-
 		if ( ! this.objLoader ) {
 
 			this.objLoader = new THREE.OBJLoader( loadingManager );
 
 		}		
-		this.objLoader.load( objFile, function ( object ) {
+		if ( ! this.imageLoader ) {
 
-			object.traverse( function ( child ) {
+			this.imageLoader = new THREE.ImageLoader( this.loadingManager );
 
-				if ( child instanceof THREE.Mesh ) {
+		
+		}
 
-					child.material = material;
-					child.material.map = texture;
+		var texture = new THREE.Texture();
+		var _this = this;
+		this.imageLoader.load( textureFile, function ( image ) {
 
-					if ( onMesh ) {
+			texture.image = image;
+			texture.needsUpdate = true;
 
-						onMesh ( child );
+			_this.objLoader.load( objFile, function ( object ) {
 
+				object.traverse( function ( child ) {
+
+					if ( child instanceof THREE.Mesh ) {
+
+						child.material = material;
+						child.material.map = texture;
+
+						if ( onMesh ) {
+
+							onMesh ( child );
+
+						}
 					}
+
+				} );
+
+				if ( onLoadComplete ) {
+
+					onLoadComplete( object );	
+
 				}
 
-			} );
+			}, onProgress, onError );
 
-			if ( onLoadComplete ) {
-
-				onLoadComplete( object );	
-
-			}
-
-		}, onProgress, onError );
+		} );
 
 	}
+
 }

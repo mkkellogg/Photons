@@ -23,9 +23,9 @@ Particles.ParticleSystem = function() {
 	this.sizeFrameSet = undefined;	
 
 	// Particle position and position modifiers (velocity and acceleration)
-	this.positionModifer = undefined;	
-	this.velocityModifer = undefined;
-	this.accelerationModifer = undefined;	
+	this.positionModifier = undefined;	
+	this.velocityModifier = undefined;
+	this.accelerationModifier = undefined;	
 	
 	// Particle rotation and rotation modifiers (rotational speed and rotational acceleration)
 	this.rotationModifier = undefined;
@@ -63,18 +63,17 @@ Particles.ParticleSystem = function() {
 }
 
 //=======================================
-// Particle system shaders
+// Particle system default shader
 //=======================================
 
 Particles.ParticleSystem.ParticleVertexShader = [
 
-	"attribute vec3 particleColor;",
-	"attribute float particleAlpha;",
+	"attribute vec4 customColor;",
 	"varying vec2 vUV;",
 	"varying vec4 vColor;",
 	"void main()",
 	"{",
-		"vColor = vec4(particleColor, particleAlpha);",	
+		"vColor = customColor;",	
 		"vUV = uv;",		
 		"vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );",   
 		"gl_Position = projectionMatrix * mvPosition;",
@@ -143,11 +142,7 @@ Particles.ParticleSystem.prototype.initializeGeometry = function () {
 
 	var particleColorAttribute = new THREE.BufferAttribute( particleColor, 4 );
 	particleColorAttribute.setDynamic( true );
-	this.particleGeometry.addAttribute( 'particleColor', particleColorAttribute );
-
-	var particleAlphaAttribute = new THREE.BufferAttribute( particleAlpha, 1 );
-	particleAlphaAttribute.setDynamic( true );
-	this.particleGeometry.addAttribute( 'particleAlpha', particleAlphaAttribute );
+	this.particleGeometry.addAttribute( 'customColor', particleColorAttribute );
 
 	var positionAttribute = new THREE.BufferAttribute( positions, 3 );
 	positionAttribute.setDynamic( true );
@@ -159,32 +154,59 @@ Particles.ParticleSystem.prototype.initializeGeometry = function () {
 	
 }
 
-Particles.ParticleSystem.prototype.initializeMaterial = function () {
+Particles.ParticleSystem.prototype.initializeMaterial = function ( altMaterial) {
 
-	this.particleMaterial = new THREE.ShaderMaterial( 
-	{
-		uniforms: 
+	if( altMaterial ) {
+
+		this.particleMaterial = altMaterial;
+
+	} else {
+
+		this.particleMaterial = new THREE.ShaderMaterial( 
 		{
-			texture:   { type: "t", value: this.particleAtlas.getTexture() },
-		},
+			uniforms: 
+			{
+				texture:   { type: "t", value: this.particleAtlas.getTexture() },
+			},
 
-		vertexShader:   Particles.ParticleSystem.ParticleVertexShader,
-		fragmentShader: Particles.ParticleSystem.ParticleFragmentShader,
+			vertexShader:   Particles.ParticleSystem.ParticleVertexShader,
+			fragmentShader: Particles.ParticleSystem.ParticleFragmentShader,
 
-		transparent: true,  
-		alphaTest: 0.5, 
+			transparent: true,  
+			alphaTest: 0.5, 
 
-		blending: this.blendStyle, 
-		blendSrc: this.blendSrc,
-		blendSrc: this.blendSrc,
-		blendEquation: this.blendEquation,
+			blending: this.blendStyle, 
+			blendSrc: this.blendSrc,
+			blendDst: this.blendDst,
+			blendEquation: this.blendEquation,
 
-		//side: THREE.DoubleSide,
-		//side: THREE.BackSide,
+			//side: THREE.DoubleSide,
+			//side: THREE.BackSide,
 
-		depthTest: true,
-		depthWrite: false
-	});
+			depthTest: true,
+			depthWrite: false
+		});
+
+	}
+}
+
+Particles.ParticleSystem.prototype.initializeMesh = function () {
+
+	this.destroyMesh();
+
+	this.particleMesh = new THREE.Mesh( this.particleGeometry, this.particleMaterial );
+	this.particleMesh.dynamic = true;
+
+}
+
+Particles.ParticleSystem.prototype.destroyMesh = function() {
+
+	if( this.particleMesh ) {
+
+		scene.remove( this.particleMesh );
+		this.particleMesh = undefined;
+
+	}
 
 }
 
@@ -202,25 +224,6 @@ Particles.ParticleSystem.prototype.initializeParticleArray = function () {
 
 	this.liveParticleArray.length = this.liveParticleCount;
 	this.deadParticleArray.length = this.deadParticleCount;			
-}
-
-Particles.ParticleSystem.prototype.initializeMesh = function () {
-
-	this.destroyMesh();
-
-	this.particleMesh = new THREE.Mesh( this.particleGeometry, this.particleMaterial );
-	this.particleMesh.dynamic = true;
-
-}
-
-Particles.ParticleSystem.prototype.destroyMesh = function() {
-
-	if( this.particleMesh ) {
-
-		this.particleMesh = undefined;
-
-	}
-
 }
 
 Particles.ParticleSystem.prototype.mergeParameters = function ( parameters ) {
@@ -251,7 +254,7 @@ Particles.ParticleSystem.prototype.bindModifier = function( name, modifer ) {
 		
 	} else if ( name == "position" ) {
 
-		this.positionModifer = modifer;
+		this.positionModifier = modifer;
 
 	} else if ( name == "velocity" ) {
 
@@ -295,7 +298,7 @@ Particles.ParticleSystem.prototype.initialize = function( camera, parameters ) {
 	this.initializeParticleArray();
 
 	this.initializeGeometry();
-	this.initializeMaterial();		
+	this.initializeMaterial( parameters.altMaterial );		
 	this.updateAttributesWithParticleData();
 	this.initializeMesh();
 }
@@ -391,15 +394,13 @@ Particles.ParticleSystem.prototype.updateAttributesWithParticleData = function (
 
 			var color = particle.color;
 			var alpha = particle.alpha;
+			color.a = alpha;
 
-			var attributeColor = this.particleGeometry.getAttribute( 'particleColor' );
-			var attributeAlpha = this.particleGeometry.getAttribute( 'particleAlpha' );
+			var attributeColor = this.particleGeometry.getAttribute( 'customColor' );
 			for(var i =0; i < Particles.Constants.VerticesPerParticle; i++ ) {
 
 				var index = baseIndex + i;
-
 				this.updateAttributeColor( attributeColor, index, color );
-				this.updateAttributeScalar( attributeAlpha, index, alpha );
 			}
 
 		}
@@ -480,7 +481,7 @@ Particles.ParticleSystem.prototype.resetParticlePositionData = function( particl
 
 	if( this.positionModifier ) {
 
-		this.positionModifer.initialize( particle.position );
+		this.positionModifier.initialize( particle.position );
 
 	}
 
@@ -557,7 +558,7 @@ Particles.ParticleSystem.prototype.advanceParticle = function( particle, deltaTi
 
 	if( this.positionModifier && ! this.positionModifier.runOnce ) {
 
-		this.positionModifer.getValue( particle.position );
+		this.positionModifier.getValue( particle.position );
 
 	} else {
 

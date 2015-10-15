@@ -11,13 +11,12 @@ var Particles = Particles || {};
 Particles.Modifier = function () {
 
 	this.runOnce = true;
-	this.hasRun = false;
 
 }
 
 Particles.Modifier.prototype.reset = function () {
 
-	this.hasRun = false;
+	
 
 }
 
@@ -89,7 +88,6 @@ Particles.RandomModifier.prototype.getValue = function( target ) {
 		
 	}
 
-	this.hasRun = true;
 	return val;
 
 }
