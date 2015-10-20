@@ -17,10 +17,10 @@ Particles.ParticleSystem = function() {
 	this.hasInitialReleaseOccurred = false;
 	this.isActive = false;
 
-	this.atlasFrameSet = undefined;
-	this.colorFrameSet = undefined;
-	this.alphaFrameSet = undefined;
-	this.sizeFrameSet = undefined;	
+	this.atlasModifier = undefined;
+	this.colorModifier = undefined;
+	this.alphModifier = undefined;
+	this.sizeModifier = undefined;	
 
 	// Particle position and position modifiers (velocity and acceleration)
 	this.positionModifier = undefined;	
@@ -95,18 +95,19 @@ Particles.ParticleSystem.Shader.ParticleVertexQuadPositionFunction = [
 		"axisY *= sin( rotation );",
 
 		"axisX += axisY;",
-		"axisY = cross( axisZ, axisX);",
+		"axisY = cross( axisZ, axisX );",
 
-		"float xFactor = 1.0;",
-		"float yFactor = 1.0;",
+		"vec3 edge = vec3( 2.0, customIndex, 3.0 );",
+		"vec3 test = vec3( customIndex, 0.5, customIndex );",
+		"vec3 result = step( edge, test );",
 
-		"if ( customIndex == 0.0 || customIndex == 1.0 )xFactor = -1.0;",
-		"if ( customIndex == 1.0 || customIndex == 2.0 )yFactor = -1.0;",
+		"float xFactor = -1.0 + ( result.x * 2.0 );",
+		"float yFactor = -1.0 + ( result.y * 2.0 ) + ( result.z * 2.0 );",
 
 		"axisX *= size.x * xFactor;",
 		"axisY *= size.y * yFactor;",
 
-		"return ( mat3(modelMatrix) * position ) + axisX + axisY;",
+		"return ( mat3( modelMatrix ) * position ) + axisX + axisY;",
 
 	"}",
 
@@ -297,34 +298,11 @@ Particles.ParticleSystem.prototype.mergeParameters = function ( parameters ) {
 
 }
 
-Particles.ParticleSystem.prototype.bindModifier = function( name, modifer ) {
+Particles.ParticleSystem.prototype.bindModifier = function( name, modifier ) {
 
-	modifer.reset();
+	if( name ) {
 
-	if ( name == "rotation" ) {
-
-		this.rotationModifer = modifer;
-
-	} else if ( name == "rotationalSpeed" ) {
-
-		this.rotationalSpeedModifier = modifer;
-		
-	} else if ( name == "rotationalAcceleration" ) {
-
-		this.rotationalAccelerationModifier = modifer;
-		
-	} else if ( name == "position" ) {
-
-		this.positionModifier = modifer;
-
-	} else if ( name == "velocity" ) {
-
-		this.velocityModifier = modifer;
-		
-	} else if ( name == "acceleration" ) {
-
-		this.accelerationModifier = modifer;
-		
+		this[name+"Modifier"] = modifier;
 	}
 
 }
@@ -333,7 +311,6 @@ Particles.ParticleSystem.prototype.initialize = function( camera, parameters ) {
 	
 	this.camera = camera;
 
-	this.atlasFrameSet = undefined;
 	this.sizeFrameSet = undefined;
 	this.colorFrameSet = undefined;
 	this.alphaFrameSet = undefined;	
@@ -344,7 +321,6 @@ Particles.ParticleSystem.prototype.initialize = function( camera, parameters ) {
 
 	}
 
-	if( ! this.atlasFrameSet ) this.atlasFrameSet = new Particles.FrameSet();
 	if( ! this.sizeFrameSet ) this.sizeFrameSet = new Particles.FrameSet();
 	if( ! this.colorFrameSet ) this.colorFrameSet = new Particles.FrameSet();
 	if( ! this.alphaFrameSet ) this.alphaFrameSet = new Particles.FrameSet();
@@ -607,29 +583,29 @@ Particles.ParticleSystem.prototype.advanceParticle = function( particle, deltaTi
 
 	particle.age += deltaTime;
 
-	if ( this.atlasFrameSet.timeFrames.length > 0 ) {
+	if( this.atlasModifier ) {
 
-		var index = this.atlasFrameSet.interpolateFrameValues( particle.age );
+		var index = this.atlasModifier.getValue( particle.age );
 		particle.atlasIndex = Math.floor(index);
 
 	}
 
-	if ( this.sizeFrameSet.timeFrames.length > 0 ) {
+	if ( this.sizeModifier ) {
 
-		this.sizeFrameSet.interpolateFrameValues( particle.age, particle.size );
+		this.sizeModifier.getValue( particle.age, particle.size );
 
 	}
 				
-	if ( this.colorFrameSet.timeFrames.length > 0 )	{
+	if ( this.colorModifier )	{
 
-		this.colorFrameSet.interpolateFrameValues( particle.age, particle._tempVector3 );
+		this.colorModifier.getValue( particle.age, particle._tempVector3 );
 		particle.color.setRGB( particle._tempVector3.x, particle._tempVector3.y, particle._tempVector3.z );
 
 	}
 	
-	if ( this.alphaFrameSet.timeFrames.length > 0 ) {
+	if ( this.alphaModifier ) {
 
-		particle.alpha = this.alphaFrameSet.interpolateFrameValues( particle.age );
+		particle.alpha = this.alphaModifier.getValue( particle.age );
 
 	}
 

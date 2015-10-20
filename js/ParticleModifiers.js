@@ -14,11 +14,6 @@ Particles.Modifier = function () {
 
 }
 
-Particles.Modifier.prototype.reset = function () {
-
-	
-
-}
 
 //=======================================
 // Random Modifier
@@ -92,11 +87,6 @@ Particles.RandomModifier.prototype.getValue = function( target ) {
 
 }
 
-Particles.RandomModifier.reset = function () {
-
-	Particles.Modifier.reset.call( this );
-
-}
 
 //=======================================
 // FrameSet Modifier
@@ -116,34 +106,13 @@ Particles.FrameSetModifier.prototype = Object.create( Particles.Modifier.prototy
 
 Particles.FrameSetModifier.prototype.initialize = function( target ) {
 
-	if( this.frameset.isScalar ) {
-
-		return this.frameset.interpolateFrameValuesScalar( 0 );
-
-	} else {
-
-		return this.frameset.interpolateFrameValuesVector( 0, target );
-
-	}
+	return this.frameset.interpolateFrameValues( 0, target );
 
 }
 
 Particles.FrameSetModifier.prototype.getValue = function( delta, target ) {
 
-	if( this.frameset.isScalar ) {
-
-		return this.frameset.interpolateFrameValuesScalar( delta );
-
-	} else {
-
-		return this.frameset.interpolateFrameValuesVector( delta, target );
-
-	}
+	return this.frameset.interpolateFrameValues( delta, target );
 
 }
 
-Particles.FrameSetModifier.reset = function () {
-
-	Particles.Modifier.reset.call( this );
-
-}
