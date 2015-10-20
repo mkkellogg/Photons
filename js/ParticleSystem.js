@@ -32,12 +32,6 @@ Particles.ParticleSystem = function() {
 	this.rotationalSpeedModifier = undefined;
 	this.rotationalAccelerationModifier = undefined;	
 
-	// blending style
-	this.blendStyle = THREE.CustomBlending;
-	this.blendSrc = THREE.SrcAlphaFactor;
-	this.blendDst = THREE.OneMinusSrcAlphaFactor;
-	this.blendEquation = THREE.AddEquation;
-
 	this.particleReleaseRate = 100;
 	this.particleLifeSpan = 1.0;
 	this.averageParticleLifeSpan = 1.0;
@@ -65,34 +59,116 @@ Particles.ParticleSystem = function() {
 //=======================================
 // Particle system default shader
 //=======================================
+Particles.ParticleSystem.Shader = Particles.ParticleSystem.Shader || {};
 
-Particles.ParticleSystem.ParticleVertexShader = [
+Particles.ParticleSystem.Shader.VertexVars = [
 
 	"attribute vec4 customColor;",
+	"attribute vec2 size;",
+	"attribute float rotation;",
+	"attribute float customIndex;",
 	"varying vec2 vUV;",
 	"varying vec4 vColor;",
-	"void main()",
-	"{",
-		"vColor = customColor;",	
-		"vUV = uv;",		
-		"vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );",   
-		"gl_Position = projectionMatrix * mvPosition;",
-	"}"
+	"uniform vec3 cameraaxisx;",
+	"uniform vec3 cameraaxisy;",
+	"uniform vec3 cameraaxisz;",
 
 ].join("\n");
 
-Particles.ParticleSystem.ParticleFragmentShader = [
+Particles.ParticleSystem.Shader.FragmentVars = [
 
 	"varying vec2 vUV;",
 	"varying vec4 vColor;", 
-	"uniform sampler2D texture;",	 
-	"void main()", 
-	"{", 
-	    "vec4 textureColor = texture2D( texture,  vUV );",
-		"gl_FragColor = vColor * textureColor;",    
+	"uniform sampler2D texture;",	
+
+].join("\n");
+
+Particles.ParticleSystem.Shader.ParticleVertexQuadPositionFunction = [
+
+	"vec3 getQuadPosition() {",
+
+		"vec3 axisX = cameraaxisx;",
+		"vec3 axisY = cameraaxisy;",
+		"vec3 axisZ = cameraaxisz;",
+
+		"axisX *= cos( rotation );",
+		"axisY *= sin( rotation );",
+
+		"axisX += axisY;",
+		"axisY = cross( axisZ, axisX);",
+
+		"float xFactor = 1.0;",
+		"float yFactor = 1.0;",
+
+		"if ( customIndex == 0.0 || customIndex == 1.0 )xFactor = -1.0;",
+		"if ( customIndex == 1.0 || customIndex == 2.0 )yFactor = -1.0;",
+
+		"axisX *= size.x * xFactor;",
+		"axisY *= size.y * yFactor;",
+
+		"return ( mat3(modelMatrix) * position ) + axisX + axisY;",
+
+	"}",
+
+].join("\n");
+
+Particles.ParticleSystem.Shader.VertexShader = [
+
+	Particles.ParticleSystem.Shader.VertexVars,
+	Particles.ParticleSystem.Shader.ParticleVertexQuadPositionFunction,
+
+	"void main() { ",
+	
+		"vColor = customColor;",	
+		"vUV = uv;",
+		"vec3 quadPos = getQuadPosition();",  
+		"gl_Position = projectionMatrix * viewMatrix * vec4( quadPos, 1.0 );",
+
 	"}"
 
 ].join("\n");
+
+Particles.ParticleSystem.Shader.FragmentShader = [
+
+	Particles.ParticleSystem.Shader.FragmentVars,
+
+	"void main() { ", 
+
+	    "vec4 textureColor = texture2D( texture,  vUV );",
+		"gl_FragColor = vColor * textureColor;", 
+
+	"}"
+
+].join("\n");
+
+Particles.ParticleSystem.createMaterial = function( vertexShader, fragmentShader, customUniforms ) {
+
+	customUniforms = customUniforms || {};
+
+	customUniforms.texture = { type: "t", value: null };
+	customUniforms.cameraaxisx = { type: "v3", value: new THREE.Vector3() };
+	customUniforms.cameraaxisy = { type: "v3", value: new THREE.Vector3() };
+	customUniforms.cameraaxisz = { type: "v3", value: new THREE.Vector3() };
+
+	vertexShader = vertexShader || Particles.ParticleSystem.Shader.VertexShader;
+	fragmentShader = fragmentShader || Particles.ParticleSystem.Shader.FragmentShader;
+
+	return new THREE.ShaderMaterial( 
+	{
+		uniforms: customUniforms,
+		vertexShader:  vertexShader,
+		fragmentShader: fragmentShader,
+
+		transparent: true,  
+		alphaTest: 0.5, 
+
+		blending: THREE.NormalBlending, 
+
+		depthTest: true,
+		depthWrite: false
+	});
+
+}
 
 //=======================================
 // Particle system functions
@@ -139,6 +215,9 @@ Particles.ParticleSystem.prototype.initializeGeometry = function () {
 	var particleAlpha = new Float32Array( this.vertexCount );
 	var positions = new Float32Array( this.vertexCount * 3 );
 	var uvs = new Float32Array( this.vertexCount * 2 );
+	var size = new Float32Array( this.vertexCount * 2 );
+	var rotation = new Float32Array( this.vertexCount );
+	var index = new Float32Array( this.vertexCount );
 
 	var particleColorAttribute = new THREE.BufferAttribute( particleColor, 4 );
 	particleColorAttribute.setDynamic( true );
@@ -151,43 +230,25 @@ Particles.ParticleSystem.prototype.initializeGeometry = function () {
 	var uvAttribute = new THREE.BufferAttribute( uvs, 2 );
 	uvAttribute.setDynamic( true );
 	this.particleGeometry.addAttribute( 'uv', uvAttribute );
+
+	var sizeAttribute = new THREE.BufferAttribute( size, 2 );
+	sizeAttribute.setDynamic( true );
+	this.particleGeometry.addAttribute( 'size', sizeAttribute );
+
+	var rotationAttribute = new THREE.BufferAttribute( rotation, 1 );
+	rotationAttribute.setDynamic( true );
+	this.particleGeometry.addAttribute( 'rotation', rotationAttribute );
+
+	var indexAttribute = new THREE.BufferAttribute( index, 1 );
+	indexAttribute.setDynamic( true );
+	this.particleGeometry.addAttribute( 'customIndex', indexAttribute );
 	
 }
 
-Particles.ParticleSystem.prototype.initializeMaterial = function ( altMaterial) {
+Particles.ParticleSystem.prototype.initializeMaterial = function ( material ) {
 
-	if( altMaterial ) {
+	this.particleMaterial = material;
 
-		this.particleMaterial = altMaterial;
-
-	} else {
-
-		this.particleMaterial = new THREE.ShaderMaterial( 
-		{
-			uniforms: 
-			{
-				texture:   { type: "t", value: this.particleAtlas.getTexture() },
-			},
-
-			vertexShader:   Particles.ParticleSystem.ParticleVertexShader,
-			fragmentShader: Particles.ParticleSystem.ParticleFragmentShader,
-
-			transparent: true,  
-			alphaTest: 0.5, 
-
-			blending: this.blendStyle, 
-			blendSrc: this.blendSrc,
-			blendDst: this.blendDst,
-			blendEquation: this.blendEquation,
-
-			//side: THREE.DoubleSide,
-			//side: THREE.BackSide,
-
-			depthTest: true,
-			depthWrite: false
-		});
-
-	}
 }
 
 Particles.ParticleSystem.prototype.initializeMesh = function () {
@@ -298,7 +359,7 @@ Particles.ParticleSystem.prototype.initialize = function( camera, parameters ) {
 	this.initializeParticleArray();
 
 	this.initializeGeometry();
-	this.initializeMaterial( parameters.altMaterial );		
+	this.initializeMaterial( parameters.material );		
 	this.updateAttributesWithParticleData();
 	this.initializeMesh();
 }
@@ -364,23 +425,26 @@ Particles.ParticleSystem.prototype.updateAttributesWithParticleData = function (
 
 		this.getCameraWorldAxes( this.camera, vectorX, vectorY, vectorZ );
 
+		this.particleMaterial.uniforms.cameraaxisx.value.copy( vectorX );
+		this.particleMaterial.uniforms.cameraaxisy.value.copy( vectorY );
+		this.particleMaterial.uniforms.cameraaxisz.value.copy( vectorZ );
+		this.particleMaterial.uniforms.texture.value = this.particleAtlas.getTexture();
+
 		for (var p = 0; p < this.liveParticleCount; p++) {
 
 			var particle = this.liveParticleArray[ p ];
 			var position = particle.position;
 			var rotation = particle.rotation;
 
-			this.generateXYAlignedQuadForParticle( particle, vectorX, vectorY, vectorZ, quadPos1, quadPos2, quadPos3, quadPos4 );
-
 			var baseIndex = p * Particles.Constants.VerticesPerParticle;
 
 			var attributePosition = this.particleGeometry.getAttribute( 'position' );
-			this.updateAttributeVector3( attributePosition, baseIndex, quadPos1 );
-			this.updateAttributeVector3( attributePosition, baseIndex + 1, quadPos2 );
-			this.updateAttributeVector3( attributePosition, baseIndex + 2, quadPos4 );
-			this.updateAttributeVector3( attributePosition, baseIndex + 3, quadPos2 );
-			this.updateAttributeVector3( attributePosition, baseIndex + 4, quadPos3 );
-			this.updateAttributeVector3( attributePosition, baseIndex + 5, quadPos4 );
+			this.updateAttributeVector3( attributePosition, baseIndex, position );
+			this.updateAttributeVector3( attributePosition, baseIndex + 1, position );
+			this.updateAttributeVector3( attributePosition, baseIndex + 2, position );
+			this.updateAttributeVector3( attributePosition, baseIndex + 3, position );
+			this.updateAttributeVector3( attributePosition, baseIndex + 4, position );
+			this.updateAttributeVector3( attributePosition, baseIndex + 5, position );
 
 			var imageDesc = this.particleAtlas.getImageDescriptor( particle.atlasIndex );
 
@@ -395,13 +459,27 @@ Particles.ParticleSystem.prototype.updateAttributesWithParticleData = function (
 			var color = particle.color;
 			var alpha = particle.alpha;
 			color.a = alpha;
+			var size = particle.size;
+			var rotation = particle.rotation * Particles.Constants.DegreesToRadians 
 
 			var attributeColor = this.particleGeometry.getAttribute( 'customColor' );
+			var attributeSize = this.particleGeometry.getAttribute( 'size' );
+			var attributeRotation = this.particleGeometry.getAttribute( 'rotation' );
 			for(var i =0; i < Particles.Constants.VerticesPerParticle; i++ ) {
 
 				var index = baseIndex + i;
 				this.updateAttributeColor( attributeColor, index, color );
+				this.updateAttributeVector2XY( attributeSize, index, size.x, size.y );
+				this.updateAttributeScalar( attributeRotation, index, rotation );
 			}
+
+			var attributeIndex = this.particleGeometry.getAttribute( 'customIndex' );
+			this.updateAttributeScalar( attributeIndex, baseIndex, 0 );
+			this.updateAttributeScalar( attributeIndex, baseIndex + 1, 1 );
+			this.updateAttributeScalar( attributeIndex, baseIndex + 2, 3 );
+			this.updateAttributeScalar( attributeIndex, baseIndex + 3, 1 );
+			this.updateAttributeScalar( attributeIndex, baseIndex + 4, 2 );
+			this.updateAttributeScalar( attributeIndex, baseIndex + 5, 3 );
 
 		}
 
