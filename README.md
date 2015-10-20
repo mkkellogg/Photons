@@ -22,35 +22,18 @@ The repository includes a demo page (index.html) that demonstrates how to define
 This example sets up a fire simulation particle system using an atlas:
 
 ```javascript
+// create a material for the particle system
+var flameMaterial = Particles.ParticleSystem.createMaterial();
+flameMaterial.blending = THREE.AdditiveBlending;
+
 // define the particle system's parameters
 var particleSystemParams = {
 
-  // create and assign a texture atlas
-  particleAtlas : Atlas.createGridAtlas( THREE.ImageUtils.loadTexture( 'images/fireloop3.jpg' ), 0.0, 1.0, 1.0, 0.0, 8.0, 8.0, false, true ),
-  
-  // tell the particle system how to interpolate the atlas frame indices
-  atlasFrameSet : new Particles.FrameSet( [0, 3], [0, 63], true ),
-  
-  // tell the particle system how to interpolate particle size
-  sizeFrameSet  : new Particles.FrameSet( [ 0, 3], [ new THREE.Vector3( 20, 25 ), new THREE.Vector3( 20, 25 ) ], false ),
-  
-  // tell the particle system how to interpolate particle opacity
-  alphaFrameSet : new Particles.FrameSet( [0, 0.2, 1.2, 2.0, 3], [ 0, .3, 1, 1, 0], true),
-  
-  // tell the particle system how to interpolate particle color
-  colorFrameSet : new Particles.FrameSet( [0, 3], [ new THREE.Vector3(1.4, 1.4, 1.4), new THREE.Vector3(1.4, 1.4, 1.4) ], false ),
-  
-  // set the blending style
-  blendStyle : THREE.AdditiveBlending,  
-  
-  // set number of particles released per second
-  particleReleaseRate : 3,
-  
-  // set particle life-span
-  particleLifeSpan : 3,		
-  
-  // set particle system life-span
-  lifespan : 0
+	material: flameMaterial,
+	particleAtlas : Atlas.createGridAtlas( THREE.ImageUtils.loadTexture( 'images/fireloop3.jpg' ), 0.0, 1.0, 1.0, 0.0, 8.0, 8.0, false, true ),		
+	particleReleaseRate : 3,
+	particleLifeSpan : 3,		
+	lifespan : 0
 
 };
 
@@ -58,20 +41,42 @@ var particleSystemParams = {
 var particleSystem = new Particles.ParticleSystem();
 particleSystem.initialize( camera, particleSystemParams );
 
+// set up a modifier that interpolates atlas indices
+particleSystem.bindModifier( "atlas", new Particles.FrameSetModifier( new Particles.FrameSet( [0, 3], [0, 63], true ) ) );
+
+// set up a modifier that interpolates particle size over a set of key frames
+particleSystem.bindModifier( "size", new Particles.FrameSetModifier( 
+	new Particles.FrameSet( 
+		[ 0, 3], 
+		[ new THREE.Vector3( 20, 25 ), 
+		  new THREE.Vector3( 20, 25 ) ], 
+		false ) 
+) );
+
+// set up a modifier that interpolates particle opacity over a set of key frames
+particleSystem.bindModifier( "alpha", new Particles.FrameSetModifier( new Particles.FrameSet( [0, 0.2, 1.2, 2.0, 3], [ 0, .3, 1, 1, 0], true) ) );
+
+// set up a modifier that interpolates particle color over a set of key frames
+particleSystem.bindModifier( "color", new Particles.FrameSetModifier( 
+	new Particles.FrameSet( 
+		[0, 3], 
+		[ new THREE.Vector3(1.4, 1.4, 1.4), 
+		  new THREE.Vector3(1.4, 1.4, 1.4) ],
+		false ) 
+) );
+
 // set up a modifier that runs once when the particle is initialized to randomize the initial position
-particleSystem.bindModifier( 'position', new Particles.RandomModifier( 
-{ 
+particleSystem.bindModifier( 'position', new Particles.RandomModifier( { 
 	isScalar: false, 
-	offset: new THREE.Vector3( 0,  7, 0 ), 
-	range: new THREE.Vector3( 3, 0, 3 ), 
+	offset: new THREE.Vector3( 0,  0, 0 ), 
+	range: new THREE.Vector3( 0, 0, 0 ), 
 	rangeEdgeClamp: false, 
 	rangeType: Particles.RangeType.Sphere, 
 	runOnce: true
 } ) );
 
 // set up a modifier that runs once when the particle is initialized to randomize the initial velocity
-particleSystem.bindModifier( 'velocity', new Particles.RandomModifier( 
-{ 
+particleSystem.bindModifier( 'velocity', new Particles.RandomModifier( { 
 	isScalar: false, 
 	offset: new THREE.Vector3( 0, 25, 0 ), 
 	range: new THREE.Vector3( 10, 2, 10 ), 
@@ -82,4 +87,5 @@ particleSystem.bindModifier( 'velocity', new Particles.RandomModifier(
 
 // start the particle system
 particleSystem.activate();
+
 ```
