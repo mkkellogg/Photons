@@ -46,6 +46,7 @@
 	var scene, camera, renderer, controls, stats, clock;
 	var currentEnvironmentID;
 	var smokeActive, smokeType;
+	var particleSystemsParent;
 
 	$( document ).ready( function() {
 
@@ -104,8 +105,8 @@
 			"{",
 				"vColor = customColor;",	
 				"vUV = uv;",
-				"vec3 quadPos = getQuadPosition();",  
-				"vPosition = viewMatrix * vec4( quadPos, 1.0 );",
+				"vec4 quadPos = getQuadPosition();",  
+				"vPosition = viewMatrix * quadPos;",
 				"gl_Position = projectionMatrix * vPosition;",
 			"}"
 
@@ -236,7 +237,7 @@
 			runOnce: true
 		} );
 
-		var atlas1Modifier = new Particles.FrameSetModifier( new Particles.FrameSet( [0, 4], [0, 0], true )	);
+		var atlas1Modifier = new Particles.EvenIntervalIndexModifier ( 1 );
 
 		var sizeModifier = new Particles.FrameSetModifier( 
 			new Particles.FrameSet( 
@@ -267,7 +268,7 @@
 		particleSystem1.bindModifier( 'alpha', alphaModifier );
 		particleSystem1.bindModifier( 'color', colorModifier );
 
-		var atlas2Modifier = new Particles.FrameSetModifier( new Particles.FrameSet( [0, 4], [0, 15], true )	);
+		var atlas2Modifier = new Particles.EvenIntervalIndexModifier ( 16 );
 
 		particleSystem2.bindModifier( 'position', positionModifier );
 		particleSystem2.bindModifier( 'velocity', velocityModifier );
@@ -281,6 +282,9 @@
 
 		particleSystems[ ParticleSystemIDs.Smoke1 ] = particleSystem1;	
 		particleSystems[ ParticleSystemIDs.Smoke2 ] = particleSystem2;	
+
+		particleSystemsParent.add ( particleSystems[ ParticleSystemIDs.Smoke1 ] );
+		particleSystemsParent.add ( particleSystems[ ParticleSystemIDs.Smoke2 ] );
 
 	}
 
@@ -306,7 +310,7 @@
 		var particleSystem = new Particles.ParticleSystem();
 		particleSystem.initialize( camera, particleSystemParams );
 
-		particleSystem.bindModifier( "atlas", new Particles.FrameSetModifier( new Particles.FrameSet( [0, 3], [0, 63], true ) ) );
+		particleSystem.bindModifier( "atlas", new Particles.EvenIntervalIndexModifier ( 64 ) );
 
 		particleSystem.bindModifier( "size", new Particles.FrameSetModifier( 
 			new Particles.FrameSet( 
@@ -317,7 +321,7 @@
 		) );
 
 		particleSystem.bindModifier( "alpha", new Particles.FrameSetModifier( new Particles.FrameSet( [0, 0.2, 1.2, 2.0, 3], [ 0, .3, 1, 1, 0], true) ) );
-		
+
 		particleSystem.bindModifier( "color", new Particles.FrameSetModifier( 
 			new Particles.FrameSet( 
 				[0, 3], 
@@ -347,6 +351,7 @@
 		} ) );
 
 		particleSystems[ ParticleSystemIDs.Flame ] = particleSystem;
+		particleSystemsParent.add ( particleSystems[ ParticleSystemIDs.Flame ] );
 
 
 		// ---------------------
@@ -368,15 +373,17 @@
 		particleSystem = new Particles.ParticleSystem();
 		particleSystem.initialize( camera, particleSystemParams );
 
-		particleSystem.bindModifier( "atlas", new Particles.FrameSetModifier( new Particles.FrameSet( [0, 3], [0, 0], true ) ) );
+		particleSystem.bindModifier( "atlas", new Particles.EvenIntervalIndexModifier ( 1 ) );
 
-		particleSystem.bindModifier( "size", new Particles.FrameSetModifier( 
-			new Particles.FrameSet( 
-				[ 0, 3], 
-				[ new THREE.Vector3( .35, .35 ), 
-				  new THREE.Vector3( .35, .35 ) ], 
-				false ) 
-		) );
+		particleSystem.bindModifier( 'size', new Particles.RandomModifier( 
+		{ 
+			isScalar: false, 
+			offset: new THREE.Vector3( .25, .25, 0.0 ), 
+			range: new THREE.Vector3( 0.05, 0.05, 0.0 ), 
+			rangeEdgeClamp: false, 
+			rangeType: Particles.RangeType.Sphere, 
+			runOnce: true
+		} ) );
 
 		particleSystem.bindModifier( "alpha", new Particles.FrameSetModifier( new Particles.FrameSet( [0, 0.2, 1.2, 2.0, 3], [ 0, 1, 1, 1, 0], true ) ) );
 
@@ -421,6 +428,7 @@
 		} ) );
 
 		particleSystems[ ParticleSystemIDs.FlameEmbers ] = particleSystem;
+		particleSystemsParent.add( particleSystems[ ParticleSystemIDs.FlameEmbers ] );
 
 	}
 
@@ -634,6 +642,11 @@
 
 		);
 
+		particleSystemsParent = new THREE.Object3D();
+		particleSystemsParent.position.set(0,0,0);
+		particleSystemsParent.matrixAutoUpdate = true;
+		scene.add( particleSystemsParent );
+
 	}
 
 	function initScene() {
@@ -811,9 +824,14 @@
 
 	function update() {
 
-		//controls.update();
+		var time = performance.now() * 0.001;		
+
+		//particleSystemsParent.position.x = Math.sin( time ) * 49;
+		//particleSystemsParent.position.z = Math.sin( time * 1.2 ) * 49;
+
+		controls.update();
 		stats.update();	
-		updateParticleSystems();		
+		updateParticleSystems();	
 
 	}
 

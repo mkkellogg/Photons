@@ -9,8 +9,12 @@
 var Particles = Particles || {};
 
 Particles.ParticleSystem = function() {
+
+	THREE.Object3D.call( this );
 	
 	this.zSort = false;
+	this.simulateInLocalSpace = true;
+	this.matrixAutoUpdate = true;
 
 	this.releaseAtOnce = false;
 	this.releaseAtOnceCount = 0.0;
@@ -56,6 +60,9 @@ Particles.ParticleSystem = function() {
 	this._tempMatrix4 = new THREE.Matrix4();
 }
 
+Particles.ParticleSystem.prototype = Object.create( THREE.Object3D.prototype );
+Particles.ParticleSystem.prototype.constructor = Particles.ParticleSystem;
+
 //=======================================
 // Particle system default shader
 //=======================================
@@ -85,7 +92,7 @@ Particles.ParticleSystem.Shader.FragmentVars = [
 
 Particles.ParticleSystem.Shader.ParticleVertexQuadPositionFunction = [
 
-	"vec3 getQuadPosition() {",
+	"vec4 getQuadPosition() {",
 
 		"vec3 axisX = cameraaxisx;",
 		"vec3 axisY = cameraaxisy;",
@@ -107,7 +114,7 @@ Particles.ParticleSystem.Shader.ParticleVertexQuadPositionFunction = [
 		"axisX *= size.x * xFactor;",
 		"axisY *= size.y * yFactor;",
 
-		"return ( mat3( modelMatrix ) * position ) + axisX + axisY;",
+		"return ( modelMatrix * vec4( position, 1.0 ) ) + vec4( axisX + axisY, 0.0 );",
 
 	"}",
 
@@ -122,8 +129,8 @@ Particles.ParticleSystem.Shader.VertexShader = [
 	
 		"vColor = customColor;",	
 		"vUV = uv;",
-		"vec3 quadPos = getQuadPosition();",  
-		"gl_Position = projectionMatrix * viewMatrix * vec4( quadPos, 1.0 );",
+		"vec4 quadPos = getQuadPosition();",  
+		"gl_Position = projectionMatrix * viewMatrix * quadPos;",
 
 	"}"
 
@@ -258,6 +265,7 @@ Particles.ParticleSystem.prototype.initializeMesh = function () {
 
 	this.particleMesh = new THREE.Mesh( this.particleGeometry, this.particleMaterial );
 	this.particleMesh.dynamic = true;
+	this.particleMesh.matrixAutoUpdate = false;
 
 }
 
@@ -517,14 +525,39 @@ Particles.ParticleSystem.prototype.resetParticle = function( particle ) {
 	particle.age = 0;
 	particle.alive = 0; 
 
-	particle.size.set( 0, 0 );
-	particle.color.set( 0, 0, 0 );
-	particle.alpha = 1.0;
-	this.atlasIndex = 0;
-
+	this.resetParticleDisplayAttributes( particle );
 	this.resetParticlePositionData( particle );
 	this.resetParticleRotationData( particle );	
 
+}
+
+Particles.ParticleSystem.prototype.resetParticleDisplayAttributes = function( particle ) {
+
+	if( this.atlasModifier ) {
+
+		var index = this.atlasModifier.initialize( particle );
+		particle.atlasIndex = Math.floor(index);
+
+	}
+
+	if ( this.sizeModifier ) {
+
+		this.sizeModifier.initialize( particle, particle.size );
+
+	}
+				
+	if ( this.colorModifier )	{
+
+		this.colorModifier.initialize( particle, particle._tempVector3 );
+		particle.color.setRGB( particle._tempVector3.x, particle._tempVector3.y, particle._tempVector3.z );
+
+	}
+	
+	if ( this.alphaModifier ) {
+
+		particle.alpha = this.alphaModifier.initialize( particle );
+
+	}
 }
 
 Particles.ParticleSystem.prototype.resetParticlePositionData = function( particle ) {
@@ -535,19 +568,26 @@ Particles.ParticleSystem.prototype.resetParticlePositionData = function( particl
 
 	if( this.positionModifier ) {
 
-		this.positionModifier.initialize( particle.position );
+		this.positionModifier.initialize( particle, particle.position );
+
+	}
+
+	if( ! this.simulateInLocalSpace ) {
+
+		particle._tempVector3.setFromMatrixPosition(  this.matrixWorld  );
+		particle.position.addVectors( particle._tempVector3, particle.position );
 
 	}
 
 	if( this.velocityModifier ) {
 
-		this.velocityModifier.initialize( particle.velocity );
+		this.velocityModifier.initialize( particle, particle.velocity );
 
 	}
 
 	if( this.accelerationModifier ) {
 
-		this.accelerationModifier.initialize( particle.acceleration );
+		this.accelerationModifier.initialize( particle, particle.acceleration );
 
 	}
 
@@ -561,19 +601,19 @@ Particles.ParticleSystem.prototype.resetParticleRotationData = function( particl
 
 	if( this.rotationModifier ) {
 
-		particle.rotation = this.rotationModifier.initialize();
+		particle.rotation = this.rotationModifier.initialize( particle );
 
 	}
 
 	if( this.rotationalSpeedModifier ) {
 
-		particle.rotationalSpeed = this.rotationalSpeedModifier.initialize();
+		particle.rotationalSpeed = this.rotationalSpeedModifier.initialize( particle );
 
 	}
 
 	if( this.rotationalAccelerationModifier ) {
 
-		particle.rotationalAcceleration = this.rotationalAccelerationModifier.initialize();
+		particle.rotationalAcceleration = this.rotationalAccelerationModifier.initialize( particle );
 
 	}
 
@@ -583,36 +623,36 @@ Particles.ParticleSystem.prototype.advanceParticle = function( particle, deltaTi
 
 	particle.age += deltaTime;
 
-	if( this.atlasModifier ) {
+	if( this.atlasModifier && ! this.atlasModifier.runOnce ) {
 
-		var index = this.atlasModifier.getValue( particle.age );
+		var index = this.atlasModifier.getValue( particle );
 		particle.atlasIndex = Math.floor(index);
 
 	}
 
-	if ( this.sizeModifier ) {
+	if ( this.sizeModifier && ! this.sizeModifier.runOnce ) {
 
-		this.sizeModifier.getValue( particle.age, particle.size );
+		this.sizeModifier.getValue( particle, particle.size );
 
 	}
 				
-	if ( this.colorModifier )	{
+	if ( this.colorModifier && ! this.colorModifier.runOnce  )	{
 
-		this.colorModifier.getValue( particle.age, particle._tempVector3 );
+		this.colorModifier.getValue( particle, particle._tempVector3 );
 		particle.color.setRGB( particle._tempVector3.x, particle._tempVector3.y, particle._tempVector3.z );
 
 	}
 	
-	if ( this.alphaModifier ) {
+	if ( this.alphaModifier && ! this.alphaModifier.runOnce ) {
 
-		particle.alpha = this.alphaModifier.getValue( particle.age );
+		particle.alpha = this.alphaModifier.getValue( particle );
 
 	}
 
 
 	if( this.positionModifier && ! this.positionModifier.runOnce ) {
 
-		this.positionModifier.getValue( particle.position );
+		this.positionModifier.getValue( particle, particle.position );
 
 	} else {
 
@@ -624,7 +664,7 @@ Particles.ParticleSystem.prototype.advanceParticle = function( particle, deltaTi
 
 	if( this.velocityModifier && ! this.velocityModifier.runOnce ) {
 
-		this.velocityModifier.getValue( particle.velocity );
+		this.velocityModifier.getValue( particle, particle.velocity );
 
 	} else {
 
@@ -636,13 +676,13 @@ Particles.ParticleSystem.prototype.advanceParticle = function( particle, deltaTi
 
 	if( this.accelerationModifier && ! this.accelerationModifier.runOnce ) {
 
-		this.accelerationModifier.getValue( particle.acceleration );
+		this.accelerationModifier.getValue( particle, particle.acceleration );
 
 	}
 	
 	if( this.rotationModifier && ! this.rotationModifier.runOnce ) {
 
-		particle.rotation = this.rotationModifier.getValue();
+		particle.rotation = this.rotationModifier.getValue( particle );
 
 	} else {
 
@@ -652,7 +692,7 @@ Particles.ParticleSystem.prototype.advanceParticle = function( particle, deltaTi
 
 	if( this.rotationalSpeedModifier && ! this.rotationalSpeedModifier.runOnce ) {
 
-		particle.rotationalSpeed = this.rotationalSpeedModifier.getValue();
+		particle.rotationalSpeed = this.rotationalSpeedModifier.getValue( particle );
 
 	} else {
 
@@ -662,7 +702,7 @@ Particles.ParticleSystem.prototype.advanceParticle = function( particle, deltaTi
 	
 	if( this.rotationalAccelerationModifier && ! this.rotationalAccelerationModifier.runOnce ) {
 
-		particle.rotationalAcceleration = this.rotationalAccelerationModifier.getValue();
+		particle.rotationalAcceleration = this.rotationalAccelerationModifier.getValue( particle );
 
 	} 
 
@@ -674,11 +714,12 @@ Particles.ParticleSystem.prototype.advanceParticles = function( deltaTime ) {
 
 	for (var i = 0; i < this.liveParticleCount; i++)
 	{
-		this.advanceParticle(this.liveParticleArray[i], deltaTime );
+		var particle = this.liveParticleArray[i];
+		this.advanceParticle(particle, deltaTime );
 
-		if ( this.liveParticleArray[i].age > this.particleLifeSpan ) 
+		if ( particle.age > particle.lifeSpan ) 
 		{
-			this.killParticle( this.liveParticleArray[i] );
+			this.killParticle( particle );
 			deadCount++;
 		}	
 	}
@@ -699,6 +740,7 @@ Particles.ParticleSystem.prototype.killParticle = function( particle ) {
 Particles.ParticleSystem.prototype.activateParticle = function( particle ) {
 
 	this.resetParticle( particle );
+	particle.lifeSpan = this.particleLifeSpan;
 	particle.alive = 1.0;
 
 }
@@ -878,6 +920,13 @@ Particles.ParticleSystem.prototype.update = function() {
 
 		} 
 
+		if( this.simulateInLocalSpace ) {
+
+			this.particleMesh.matrix.copy( this.matrixWorld );
+			this.particleMesh.updateMatrixWorld();
+
+		}
+
 	}
 	
 }();
@@ -910,12 +959,13 @@ Particles.ParticleSystem.prototype.activate = function() {
 
 Particles.Particle = function () {
 
-	this.size = new THREE.Vector2();
+	this.size = new THREE.Vector3();
 	this.color = new THREE.Color();
 	this.alpha = 1.0;			
 	this.age = 0;
 	this.atlasIndex = 0;
 	this.alive = 0; 
+	this.lifeSpan = 0;
 
 	this.position = new THREE.Vector3();
 	this.velocity = new THREE.Vector3(); 
