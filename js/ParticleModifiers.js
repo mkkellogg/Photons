@@ -55,13 +55,13 @@ Particles.RandomModifier = function ( params ) {
 
 Particles.RandomModifier.prototype = Object.create( Particles.Modifier.prototype );
 
-Particles.RandomModifier.prototype.initialize = function( target ) {
+Particles.RandomModifier.prototype.initialize = function( particle, target ) {
 
-	return this.getValue( target );
+	return this.getValue( 0, target );
 
 }
 
-Particles.RandomModifier.prototype.getValue = function( target ) {
+Particles.RandomModifier.prototype.getValue = function( particle, target ) {
 
 	var val =  undefined;	
 
@@ -104,15 +104,47 @@ Particles.FrameSetModifier = function ( frameset ) {
 Particles.FrameSetModifier.prototype = Object.create( Particles.Modifier.prototype );
 
 
-Particles.FrameSetModifier.prototype.initialize = function( target ) {
+Particles.FrameSetModifier.prototype.initialize = function( particle, target ) {
 
 	return this.frameset.interpolateFrameValues( 0, target );
 
 }
 
-Particles.FrameSetModifier.prototype.getValue = function( delta, target ) {
+Particles.FrameSetModifier.prototype.getValue = function( particle, target ) {
 
-	return this.frameset.interpolateFrameValues( delta, target );
+	return this.frameset.interpolateFrameValues( particle.age, target );
+
+}
+
+
+//=======================================
+// EvenIntervalIndex Modifier
+//=======================================
+
+Particles.EvenIntervalIndexModifier = function ( totalSteps ) {
+
+	Particles.Modifier.call( this );
+	this.totalSteps = Math.floor( totalSteps || 1 );
+	this.runOnce = false;
+
+}
+
+Particles.EvenIntervalIndexModifier.prototype = Object.create( Particles.Modifier.prototype );
+
+
+Particles.EvenIntervalIndexModifier.prototype.initialize = function( particle, target ) {
+
+	return 0;
+
+}
+
+Particles.EvenIntervalIndexModifier.prototype.getValue = function( particle, target ) {
+
+	var fraction = particle.age / particle.lifeSpan;
+	var step = Math.floor( fraction * this.totalSteps );
+	if ( step == this.totalSteps && step > 0 ) step--;
+
+	return step;
 
 }
 
