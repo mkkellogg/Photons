@@ -38,8 +38,8 @@ Particles.Random.getRandomVectorCube = function( vector, offset, range, edgeClam
 
 	if ( edgeClamp ) {
 
-		var max = Math.max ( vector.x, Math.max ( vector.y, vector.z ) );
-		vecotr.multiplyScalar( 1.0 / max );
+		var max = Math.max ( Math.abs( vector.x ), Math.max ( Math.abs( vector.y ), Math.abs( vector.z ) ) );
+		vector.multiplyScalar( 1.0 / max );
 
 	}
 

@@ -119,10 +119,22 @@
 
 			THREE.ShaderChunk[ "common" ],
 
-			"uniform vec3 pointLightColor[MAX_POINT_LIGHTS];",
-			"uniform vec3 pointLightPosition[MAX_POINT_LIGHTS];",
-			"uniform float pointLightDistance[MAX_POINT_LIGHTS];",
-			"uniform float pointLightDecay[MAX_POINT_LIGHTS];",
+			"struct PointLight {",
+			"  vec3 position;",
+			"  vec3 color;",
+			"  float distance;",
+			"  float decay;",
+			"  int shadow;",
+			"};",
+
+			"float calcLightAttenuation( float lightDistance, float cutoffDistance, float decayExponent ) {",
+			"	if ( decayExponent > 0.0 ) {",
+			"	  return pow( saturate( 1.0 - lightDistance / cutoffDistance ), decayExponent );",
+			"	}",
+			"	return 1.0;",
+			"}",
+
+			"uniform PointLight pointLights[ NUM_POINT_LIGHTS ];",
 
 			"void main()", 
 			"{", 
@@ -134,13 +146,13 @@
 				
 				"vec3 totalDiffuseLight = vec3( 0.0 );",
 
-				"#if MAX_POINT_LIGHTS > 0",
-					"for ( int i = 0; i < MAX_POINT_LIGHTS; i ++ ) {",
-						"vec3 lightColor = pointLightColor[ i ];",
-						"vec3 lightPosition = pointLightPosition[ i ];",
+				"#if NUM_POINT_LIGHTS > 0",
+					"for ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {",
+						"vec3 lightColor = pointLights[ i ].color;",
+						"vec3 lightPosition = pointLights[ i ].position;",
 						"vec3 lVector = lightPosition + viewPosition.xyz;",
 						"vec3 lightDir = normalize( lVector );",
-						"float attenuation = calcLightAttenuation( length( lVector ), pointLightDistance[ i ], pointLightDecay[ i ] );",
+						"float attenuation = calcLightAttenuation( length( lVector ), pointLights[ i ].distance, pointLights[ i ].decay );",
 						"totalDiffuseLight += lightColor * attenuation;",
 					"}",
 				"#endif",
@@ -205,7 +217,7 @@
 		{ 
 			isScalar: false, 
 			offset: new THREE.Vector3( 0, 75, 0 ), 
-			range: new THREE.Vector3( 25, 25, 25 ), 
+			range: new THREE.Vector3( 5, 25, 5 ), 
 			rangeEdgeClamp: false, 
 			rangeType: Particles.RangeType.Sphere, 
 			runOnce: true
@@ -214,8 +226,8 @@
 		var accelerationModifier = new Particles.RandomModifier( 
 		{ 
 			isScalar: false, 
-			offset: new THREE.Vector3( 0, -10, 0 ), 
-			range: new THREE.Vector3( 0, 0, 0 ), 
+			offset: new THREE.Vector3( 0, -18, 0 ), 
+			range: new THREE.Vector3( 35, 20, 35 ), 
 			rangeEdgeClamp: false, 
 			rangeType: Particles.RangeType.Cube, 
 			runOnce: true
