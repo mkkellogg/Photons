@@ -162,7 +162,7 @@
 
 		].join("\n");
 
-		var customUniforms1 = THREE.UniformsUtils.merge([ THREE.UniformsLib['lights'] ]);
+		var customUniforms1 = THREE.UniformsUtils.merge([ THREE.UniformsLib['lights'], THREE.UniformsLib['ambient'] ]);
 
 		var altMaterial1 = Particles.ParticleSystem.createMaterial( altVertexShader, altFragmentShader, customUniforms1 );
 		altMaterial1.lights = true;
