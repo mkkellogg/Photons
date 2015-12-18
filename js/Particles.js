@@ -21,11 +21,6 @@ THREE.Particles.Constants = Object.freeze( {
 
 
 THREE.Particles.Random = THREE.Particles.Random || {};
-THREE.Particles.Random.getRandomScalar = function( base, range ) {
-
-	return base + range * (Math.random() - 0.5);
-
-}
 
 THREE.Particles.Random.getRandomVectorCube = function( vector, offset, range, edgeClamp ) {
 
@@ -33,6 +28,10 @@ THREE.Particles.Random.getRandomVectorCube = function( vector, offset, range, ed
 	var y = Math.random() - 0.5;
 	var z = Math.random() - 0.5;
 	var w = Math.random() - 0.5;
+
+	if(!vector.set){
+		console.log(vector);
+	}
 
 	vector.set( x, y, z, w );
 
@@ -46,8 +45,6 @@ THREE.Particles.Random.getRandomVectorCube = function( vector, offset, range, ed
 	vector.multiplyVectors( range, vector );	
 	vector.addVectors( offset, vector );
 
-	return vector;
-
 }
 
 THREE.Particles.Random.getRandomVectorSphere = function( vector, offset, range, edgeClamp ) {
@@ -58,7 +55,9 @@ THREE.Particles.Random.getRandomVectorSphere = function( vector, offset, range, 
 	var w = Math.random() - 0.5;
 
 	vector.set( x, y, z, w );
-	vector.normalize().multiplyVectors( vector, range );
+	vector.normalize();
+
+	vector.multiplyVectors( vector, range );
 	
 	if ( ! edgeClamp ) {
 
@@ -68,23 +67,54 @@ THREE.Particles.Random.getRandomVectorSphere = function( vector, offset, range, 
 
 	vector.addVectors(vector, offset );
 
-	return vector;
+}
+
+THREE.Particles.SingularVector = function( x ){
+
+	this.x = x;
 
 }
 
-THREE.Particles.SingularVector = function(value){
 
-	this.x = value;
+THREE.Particles.SingularVector.prototype.copy = function( dest ){
 
-}
-
-
-THREE.Particles.SingularVector.prototype.copy = function(src){
+	this.x = dest.x;
 
 }
 
-THREE.Particles.SingularVector.prototype.lerp = function(src, f){
+THREE.Particles.SingularVector.prototype.set = function( x ){
+
+	this.x = x;
+
+}
+
+THREE.Particles.SingularVector.prototype.normalize = function(){
+
+	//return this;
+
+}
+
+THREE.Particles.SingularVector.prototype.multiplyScalar = function( x ){
+
+	this.x *= x;
+
+}
+
+THREE.Particles.SingularVector.prototype.lerp = function( dest, f ){
 	
-	//return a + f * ( b - a );
+	this.x = this.x + f * ( dest.x - this.x );
 
 }
+
+THREE.Particles.SingularVector.prototype.addVectors = function( vector, offset ){
+
+	vector.x += offset;
+
+}
+
+THREE.Particles.SingularVector.prototype.multiplyVectors = function( vector, rangeVector ){
+
+	vector.x *= rangeVector.x;
+
+}
+

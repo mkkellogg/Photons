@@ -14,7 +14,6 @@ THREE.Particles.Modifier = function () {
 
 }
 
-
 //=======================================
 // Random Modifier
 //=======================================
@@ -25,31 +24,19 @@ THREE.Particles.RandomModifier = function ( params ) {
 
 	if( ! params ) params = {};
 
-	if( params.isScalar === null || params.isScalar === undefined ) {
-
-		params.isScalar = true;
-
+	if(!params.range){
+		throw "Particles.RandomModifier: No range specified.";
 	}
 
-	this.isScalar = params.isScalar;
-
-	if ( this.isScalar ) {
-
-		this.offset = params.offset !== undefined && params.offset !== null ?  params.offset : 0 ;
-		this.range = params.range !== undefined && params.range !== null ?  params.range : 0 ;
-		this.runOnce = params.runOnce !== undefined && params.runOnce !== null ?  params.runOnce : true ;
-		this.rangeType = undefined;
-		this.rangeEdgeClamp = params.rangeEdgeClamp !== undefined && params.rangeEdgeClamp !== null ?  params.rangeEdgeClamp : false ;
-
-	} else {
-
-		this.offset = params.offset !== undefined && params.offset !== null ?  params.offset : new THREE.Vector3 (0, 0, 0 );
-		this.range = params.range !== undefined && params.range !== null ?  params.range : new THREE.Vector3 (0, 0, 0 );
-		this.runOnce = params.runOnce !== undefined && params.runOnce !== null ?  params.runOnce : true ;
-		this.rangeType = params.rangeType || THREE.Particles.RangeType.Cube;
-		this.rangeEdgeClamp = params.rangeEdgeClamp !== undefined && params.rangeEdgeClamp !== null ?  params.rangeEdgeClamp : false ;
-
+	if(!params.offset){
+		throw "Particles.RandomModifier: No offset specified.";
 	}
+
+	this.range = params.range;
+	this.offset = params.offset;
+	this.runOnce = params.runOnce !== undefined && params.runOnce !== null ?  params.runOnce : true ;
+	this.rangeType = params.rangeType || THREE.Particles.RangeType.Cube;
+	this.rangeEdgeClamp = params.rangeEdgeClamp !== undefined && params.rangeEdgeClamp !== null ?  params.rangeEdgeClamp : false ;
 
 }
 
@@ -57,33 +44,21 @@ THREE.Particles.RandomModifier.prototype = Object.create( THREE.Particles.Modifi
 
 THREE.Particles.RandomModifier.prototype.initialize = function( particle, target ) {
 
-	return this.getValue( 0, target );
+	this.getValue( null, target );
 
 }
 
 THREE.Particles.RandomModifier.prototype.getValue = function( particle, target ) {
 
-	var val =  undefined;	
+	if( this.rangeType == THREE.Particles.RangeType.Cube ) {
 
-	if( this.isScalar ) {
+		THREE.Particles.Random.getRandomVectorCube( target, this.offset, this.range, this.rangeEdgeClamp );
 
-		val =  THREE.Particles.Random.getRandomScalar( this.offset, this.range );
+	} else if( this.rangeType == THREE.Particles.RangeType.Sphere ) {
 
-	}  else {
+		THREE.Particles.Random.getRandomVectorSphere( target, this.offset, this.range, this.rangeEdgeClamp );
 
-		if( this.rangeType == THREE.Particles.RangeType.Cube ) {
-
-			val =  THREE.Particles.Random.getRandomVectorCube( target, this.offset, this.range, this.rangeEdgeClamp );
-
-		} else if( this.rangeType == THREE.Particles.RangeType.Sphere ) {
-
-			val =  THREE.Particles.Random.getRandomVectorSphere( target, this.offset, this.range, this.rangeEdgeClamp );
-
-		}
-		
 	}
-
-	return val;
 
 }
 
@@ -106,13 +81,13 @@ THREE.Particles.FrameSetModifier.prototype = Object.create( THREE.Particles.Modi
 
 THREE.Particles.FrameSetModifier.prototype.initialize = function( particle, target ) {
 
-	return this.frameset.interpolateFrameValues( 0, target );
+	this.frameset.interpolateFrameValues( 0, target );
 
 }
 
 THREE.Particles.FrameSetModifier.prototype.getValue = function( particle, target ) {
 
-	return this.frameset.interpolateFrameValues( particle.age, target );
+	this.frameset.interpolateFrameValues( particle.age, target );
 
 }
 
@@ -134,7 +109,7 @@ THREE.Particles.EvenIntervalIndexModifier.prototype = Object.create( THREE.Parti
 
 THREE.Particles.EvenIntervalIndexModifier.prototype.initialize = function( particle, target ) {
 
-	return 0;
+	target.set( 0, 0, 0 );
 
 }
 
@@ -144,7 +119,7 @@ THREE.Particles.EvenIntervalIndexModifier.prototype.getValue = function( particl
 	var step = Math.floor( fraction * this.totalSteps );
 	if ( step == this.totalSteps && step > 0 ) step--;
 
-	return step;
+	target.set( step, step, step );
 
 }
 

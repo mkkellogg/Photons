@@ -418,7 +418,6 @@ THREE.Particles.ParticleSystem.prototype.updateAttributesWithParticleData = func
 
 			var particle = this.liveParticleArray[ p ];
 			var position = particle.position;
-			var rotation = particle.rotation;
 
 			var baseIndex = p * THREE.Particles.Constants.VerticesPerParticle;
 
@@ -430,8 +429,7 @@ THREE.Particles.ParticleSystem.prototype.updateAttributesWithParticleData = func
 			this.updateAttributeVector3( attributePosition, baseIndex + 4, position );
 			this.updateAttributeVector3( attributePosition, baseIndex + 5, position );
 
-			var imageDesc = this.particleAtlas.getImageDescriptor( particle.atlasIndex );
-
+			var imageDesc = this.particleAtlas.getImageDescriptor( particle.atlasIndex.x );
 			var attributeUV = this.particleGeometry.getAttribute( 'uv' );
 			this.updateAttributeVector2XY( attributeUV, baseIndex, imageDesc.left, imageDesc.top );
 			this.updateAttributeVector2XY( attributeUV, baseIndex + 1, imageDesc.left, imageDesc.bottom );
@@ -441,10 +439,10 @@ THREE.Particles.ParticleSystem.prototype.updateAttributesWithParticleData = func
 			this.updateAttributeVector2XY( attributeUV, baseIndex + 5, imageDesc.right, imageDesc.top );
 
 			var color = particle.color;
-			var alpha = particle.alpha;
+			var alpha = particle.alpha.x;
 			color.a = alpha;
 			var size = particle.size;
-			var rotation = particle.rotation * THREE.Particles.Constants.DegreesToRadians 
+			var rotation = particle.rotation.x * THREE.Particles.Constants.DegreesToRadians 
 
 			var attributeColor = this.particleGeometry.getAttribute( 'customColor' );
 			var attributeSize = this.particleGeometry.getAttribute( 'size' );
@@ -516,7 +514,7 @@ THREE.Particles.ParticleSystem.prototype.createParticle = function() {
 
 THREE.Particles.ParticleSystem.prototype.initializeParticle = function( particle ) {
 
-	 
+	 this.resetParticle( particle );
 
 }
 
@@ -535,8 +533,7 @@ THREE.Particles.ParticleSystem.prototype.resetParticleDisplayAttributes = functi
 
 	if( this.atlasModifier ) {
 
-		var index = this.atlasModifier.initialize( particle );
-		particle.atlasIndex = Math.floor(index);
+		this.atlasModifier.initialize( particle, particle.atlasIndex );
 
 	}
 
@@ -555,7 +552,7 @@ THREE.Particles.ParticleSystem.prototype.resetParticleDisplayAttributes = functi
 	
 	if ( this.alphaModifier ) {
 
-		particle.alpha = this.alphaModifier.initialize( particle );
+		this.alphaModifier.initialize( particle, particle.alpha);
 
 	}
 }
@@ -595,25 +592,25 @@ THREE.Particles.ParticleSystem.prototype.resetParticlePositionData = function( p
 
 THREE.Particles.ParticleSystem.prototype.resetParticleRotationData = function( particle ) {
 
-	particle.rotation = 0;
-	particle.rotationalSpeed = 0;
-	particle.rotationalAcceleration = 0;
+	particle.rotation.set( 0 );
+	particle.rotationalSpeed.set( 0 );
+	particle.rotationalAcceleration.set( 0 );
 
 	if( this.rotationModifier ) {
 
-		particle.rotation = this.rotationModifier.initialize( particle );
+		this.rotationModifier.initialize( particle, particle.rotation);
 
 	}
 
 	if( this.rotationalSpeedModifier ) {
 
-		particle.rotationalSpeed = this.rotationalSpeedModifier.initialize( particle );
+		this.rotationalSpeedModifier.initialize( particle, particle.rotationalSpeed );
 
 	}
 
 	if( this.rotationalAccelerationModifier ) {
 
-		particle.rotationalAcceleration = this.rotationalAccelerationModifier.initialize( particle );
+		this.rotationalAccelerationModifier.initialize( particle, particle.rotationalAcceleration );
 
 	}
 
@@ -623,10 +620,17 @@ THREE.Particles.ParticleSystem.prototype.advanceParticle = function( particle, d
 
 	particle.age += deltaTime;
 
+	this.advanceParticleDisplayAttributes( particle, deltaTime );
+	this.advanceParticlePositionData( particle, deltaTime );
+	this.advanceParticleRotationData( particle, deltaTime );
+
+}
+
+THREE.Particles.ParticleSystem.prototype.advanceParticleDisplayAttributes = function( particle, deltaTime ) {
+
 	if( this.atlasModifier && ! this.atlasModifier.runOnce ) {
 
-		var index = this.atlasModifier.getValue( particle );
-		particle.atlasIndex = Math.floor(index);
+		this.atlasModifier.getValue( particle, particle.atlasIndex);
 
 	}
 
@@ -645,10 +649,12 @@ THREE.Particles.ParticleSystem.prototype.advanceParticle = function( particle, d
 	
 	if ( this.alphaModifier && ! this.alphaModifier.runOnce ) {
 
-		particle.alpha = this.alphaModifier.getValue( particle );
+		this.alphaModifier.getValue( particle, particle.alpha);
 
 	}
+}
 
+THREE.Particles.ParticleSystem.prototype.advanceParticlePositionData = function( particle, deltaTime ) {
 
 	if( this.positionModifier && ! this.positionModifier.runOnce ) {
 
@@ -679,30 +685,33 @@ THREE.Particles.ParticleSystem.prototype.advanceParticle = function( particle, d
 		this.accelerationModifier.getValue( particle, particle.acceleration );
 
 	}
-	
+}
+
+THREE.Particles.ParticleSystem.prototype.advanceParticleRotationData = function( particle, deltaTime ) {
+
 	if( this.rotationModifier && ! this.rotationModifier.runOnce ) {
 
-		particle.rotation = this.rotationModifier.getValue( particle );
+		 this.rotationModifier.getValue( particle, particle.rotation);
 
 	} else {
 
-		particle.rotation  += particle.rotationalSpeed * deltaTime;
+		particle.rotation.set( particle.rotation.x += particle.rotationalSpeed.x * deltaTime );
 
 	}
 
 	if( this.rotationalSpeedModifier && ! this.rotationalSpeedModifier.runOnce ) {
 
-		particle.rotationalSpeed = this.rotationalSpeedModifier.getValue( particle );
+		this.rotationalSpeedModifier.getValue( particle, particle.rotationalSpeed);
 
 	} else {
 
-		particle.rotationalSpeed += particle.rotationalAcceleration * deltaTime;
+		particle.rotationalSpeed.set( particle.rotationalSpeed.x += particle.rotationalAcceleration.x * deltaTime );
 
 	}	
 	
 	if( this.rotationalAccelerationModifier && ! this.rotationalAccelerationModifier.runOnce ) {
 
-		particle.rotationalAcceleration = this.rotationalAccelerationModifier.getValue( particle );
+		this.rotationalAccelerationModifier.getValue( particle, particle.rotationalAcceleration );
 
 	} 
 
@@ -959,21 +968,22 @@ THREE.Particles.ParticleSystem.prototype.activate = function() {
 
 THREE.Particles.Particle = function () {
 
-	this.size = new THREE.Vector3();
-	this.color = new THREE.Color();
-	this.alpha = 1.0;			
 	this.age = 0;
-	this.atlasIndex = 0;
 	this.alive = 0; 
 	this.lifeSpan = 0;
+
+	this.size = new THREE.Vector3();
+	this.color = new THREE.Color();
+	this.alpha = new THREE.Particles.SingularVector( 0 );	
+	this.atlasIndex = new THREE.Particles.SingularVector( 0 );
 
 	this.position = new THREE.Vector3();
 	this.velocity = new THREE.Vector3(); 
 	this.acceleration = new THREE.Vector3();
 
-	this.rotation = 0;
-	this.rotationalSpeed = 0; 
-	this.rotationalAcceleration = 0;
+	this.rotation = new THREE.Particles.SingularVector( 0 );
+	this.rotationalSpeed = new THREE.Particles.SingularVector( 0 ); 
+	this.rotationalAcceleration = new THREE.Particles.SingularVector( 0 );
 
 	this._tempVector3 = new THREE.Vector3();
 
