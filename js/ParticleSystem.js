@@ -21,20 +21,30 @@ THREE.Particles.ParticleSystem = function() {
 	this.hasInitialReleaseOccurred = false;
 	this.isActive = false;
 
-	this.atlasModifier = undefined;
-	this.colorModifier = undefined;
-	this.alphModifier = undefined;
-	this.sizeModifier = undefined;	
+	this.atlasInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
+	this.colorInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
+	this.alphaInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
+	this.sizeInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
+	this.atlasUpdater = THREE.Particles.ParticleSystem.DefaultUpdater;
+	this.colorUpdater = THREE.Particles.ParticleSystem.DefaultUpdater;	
+	this.alphaUpdater = THREE.Particles.ParticleSystem.DefaultUpdater;	
+	this.sizeUpdater = THREE.Particles.ParticleSystem.DefaultUpdater;	
 
 	// Particle position and position modifiers (velocity and acceleration)
-	this.positionModifier = undefined;	
-	this.velocityModifier = undefined;
-	this.accelerationModifier = undefined;	
+	this.positionUpdater = THREE.Particles.ParticleSystem.DefaultPositionUpdater;
+	this.velocityUpdater = THREE.Particles.ParticleSystem.DefaultVelocityUpdater;
+	this.accelerationUpdater = THREE.Particles.ParticleSystem.DefaultUpdater;
+	this.positionInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
+	this.velocityInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
+	this.accelerationInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
 	
 	// Particle rotation and rotation modifiers (rotational speed and rotational acceleration)
-	this.rotationModifier = undefined;
-	this.rotationalSpeedModifier = undefined;
-	this.rotationalAccelerationModifier = undefined;	
+	this.rotationUpdater = THREE.Particles.ParticleSystem.DefaultRotationUpdater;
+	this.rotationalSpeedUpdater = THREE.Particles.ParticleSystem.DefaultRotationalSpeedUpdater;
+	this.rotationalAccelerationUpdater = THREE.Particles.ParticleSystem.DefaultUpdater;
+	this.rotationInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
+	this.rotationalSpeedInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
+	this.rotationalAccelerationInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;	
 
 	this.particleReleaseRate = 100;
 	this.particleLifeSpan = 1.0;
@@ -306,12 +316,28 @@ THREE.Particles.ParticleSystem.prototype.mergeParameters = function ( parameters
 
 }
 
-THREE.Particles.ParticleSystem.prototype.bindModifier = function( name, modifier ) {
+THREE.Particles.ParticleSystem.prototype.bindInitializer = function( name, modifier ) {
 
 	if( name ) {
 
-		this[name+"Modifier"] = modifier;
+		this[name+"Initializer"] = modifier;
 	}
+
+}
+
+THREE.Particles.ParticleSystem.prototype.bindUpdater = function( name, modifier ) {
+
+	if( name ) {
+
+		this[name+"Updater"] = modifier;
+	}
+
+}
+
+THREE.Particles.ParticleSystem.prototype.bindModifier = function( name, modifier ) {
+
+	this.bindInitializer( name, modifier );
+	this.bindUpdater( name, modifier );
 
 }
 
@@ -531,43 +557,17 @@ THREE.Particles.ParticleSystem.prototype.resetParticle = function( particle ) {
 
 THREE.Particles.ParticleSystem.prototype.resetParticleDisplayAttributes = function( particle ) {
 
-	if( this.atlasModifier ) {
+	this.atlasInitializer.getValue( particle, particle.atlasIndex, 0 );
+	this.sizeInitializer.getValue( particle, particle.size, 0 );
+	this.colorInitializer.getValue( particle, particle._tempVector3, 0 );
+	particle.color.setRGB( particle._tempVector3.x, particle._tempVector3.y, particle._tempVector3.z );
+	this.alphaInitializer.getValue( particle, particle.alpha, 0);
 
-		this.atlasModifier.initialize( particle, particle.atlasIndex );
-
-	}
-
-	if ( this.sizeModifier ) {
-
-		this.sizeModifier.initialize( particle, particle.size );
-
-	}
-				
-	if ( this.colorModifier )	{
-
-		this.colorModifier.initialize( particle, particle._tempVector3 );
-		particle.color.setRGB( particle._tempVector3.x, particle._tempVector3.y, particle._tempVector3.z );
-
-	}
-	
-	if ( this.alphaModifier ) {
-
-		this.alphaModifier.initialize( particle, particle.alpha);
-
-	}
 }
 
 THREE.Particles.ParticleSystem.prototype.resetParticlePositionData = function( particle ) {
 
-	particle.position.set( 0, 0, 0 );
-	particle.velocity.set( 0, 0, 0 );
-	particle.acceleration.set( 0, 0, 0 );
-
-	if( this.positionModifier ) {
-
-		this.positionModifier.initialize( particle, particle.position );
-
-	}
+	this.positionInitializer.getValue( particle, particle.position, 0 );
 
 	if( ! this.simulateInLocalSpace ) {
 
@@ -576,44 +576,16 @@ THREE.Particles.ParticleSystem.prototype.resetParticlePositionData = function( p
 
 	}
 
-	if( this.velocityModifier ) {
-
-		this.velocityModifier.initialize( particle, particle.velocity );
-
-	}
-
-	if( this.accelerationModifier ) {
-
-		this.accelerationModifier.initialize( particle, particle.acceleration );
-
-	}
+	this.velocityInitializer.getValue( particle, particle.velocity, 0 );
+	this.accelerationInitializer.getValue( particle, particle.acceleration, 0 );
 
 }
 
 THREE.Particles.ParticleSystem.prototype.resetParticleRotationData = function( particle ) {
 
-	particle.rotation.set( 0 );
-	particle.rotationalSpeed.set( 0 );
-	particle.rotationalAcceleration.set( 0 );
-
-	if( this.rotationModifier ) {
-
-		this.rotationModifier.initialize( particle, particle.rotation);
-
-	}
-
-	if( this.rotationalSpeedModifier ) {
-
-		this.rotationalSpeedModifier.initialize( particle, particle.rotationalSpeed );
-
-	}
-
-	if( this.rotationalAccelerationModifier ) {
-
-		this.rotationalAccelerationModifier.initialize( particle, particle.rotationalAcceleration );
-
-	}
-
+	this.rotationInitializer.getValue( particle, particle.rotation );
+	this.rotationalSpeedInitializer.getValue( particle, particle.rotationalSpeed );
+	this.rotationalAccelerationInitializer.getValue( particle, particle.rotationalAcceleration );
 }
 
 THREE.Particles.ParticleSystem.prototype.advanceParticle = function( particle, deltaTime ) {
@@ -628,92 +600,27 @@ THREE.Particles.ParticleSystem.prototype.advanceParticle = function( particle, d
 
 THREE.Particles.ParticleSystem.prototype.advanceParticleDisplayAttributes = function( particle, deltaTime ) {
 
-	if( this.atlasModifier && ! this.atlasModifier.runOnce ) {
+	this.atlasUpdater.getValue( particle, particle.atlasIndex, deltaTime );
+	this.sizeUpdater.getValue( particle, particle.size, deltaTime );
+	this.colorUpdater.getValue( particle, particle._tempVector3, deltaTime );
+	particle.color.setRGB( particle._tempVector3.x, particle._tempVector3.y, particle._tempVector3.z );
+	this.alphaUpdater.getValue( particle, particle.alpha, deltaTime );
 
-		this.atlasModifier.getValue( particle, particle.atlasIndex);
-
-	}
-
-	if ( this.sizeModifier && ! this.sizeModifier.runOnce ) {
-
-		this.sizeModifier.getValue( particle, particle.size );
-
-	}
-				
-	if ( this.colorModifier && ! this.colorModifier.runOnce  )	{
-
-		this.colorModifier.getValue( particle, particle._tempVector3 );
-		particle.color.setRGB( particle._tempVector3.x, particle._tempVector3.y, particle._tempVector3.z );
-
-	}
-	
-	if ( this.alphaModifier && ! this.alphaModifier.runOnce ) {
-
-		this.alphaModifier.getValue( particle, particle.alpha);
-
-	}
 }
 
 THREE.Particles.ParticleSystem.prototype.advanceParticlePositionData = function( particle, deltaTime ) {
 
-	if( this.positionModifier && ! this.positionModifier.runOnce ) {
+	this.positionUpdater.getValue( particle, particle.position, deltaTime );
+	this.velocityUpdater.getValue( particle, particle.velocity, deltaTime );
+	this.accelerationUpdater.getValue( particle, particle.acceleration, deltaTime );
 
-		this.positionModifier.getValue( particle, particle.position );
-
-	} else {
-
-		particle._tempVector3.copy( particle.velocity );
-		particle._tempVector3.multiplyScalar(deltaTime);
-		particle.position.add( particle._tempVector3 );
-
-	}
-
-	if( this.velocityModifier && ! this.velocityModifier.runOnce ) {
-
-		this.velocityModifier.getValue( particle, particle.velocity );
-
-	} else {
-
-		particle._tempVector3.copy( particle.acceleration );
-		particle._tempVector3.multiplyScalar(deltaTime);
-		particle.velocity.add( particle._tempVector3 );
-
-	}
-
-	if( this.accelerationModifier && ! this.accelerationModifier.runOnce ) {
-
-		this.accelerationModifier.getValue( particle, particle.acceleration );
-
-	}
 }
 
 THREE.Particles.ParticleSystem.prototype.advanceParticleRotationData = function( particle, deltaTime ) {
 
-	if( this.rotationModifier && ! this.rotationModifier.runOnce ) {
-
-		 this.rotationModifier.getValue( particle, particle.rotation);
-
-	} else {
-
-		particle.rotation.set( particle.rotation.x += particle.rotationalSpeed.x * deltaTime );
-
-	}
-
-	if( this.rotationalSpeedModifier && ! this.rotationalSpeedModifier.runOnce ) {
-
-		this.rotationalSpeedModifier.getValue( particle, particle.rotationalSpeed);
-
-	} else {
-
-		particle.rotationalSpeed.set( particle.rotationalSpeed.x += particle.rotationalAcceleration.x * deltaTime );
-
-	}	
-	
-	if( this.rotationalAccelerationModifier && ! this.rotationalAccelerationModifier.runOnce ) {
-
-		this.rotationalAccelerationModifier.getValue( particle, particle.rotationalAcceleration );
-
-	} 
+	this.rotationUpdater.getValue( particle, particle.rotation, deltaTime );
+	this.rotationalSpeedUpdater.getValue( particle, particle.rotationalSpeed, deltaTime );
+	this.rotationalAccelerationUpdater.getValue( particle, particle.rotationalAcceleration, deltaTime );
 
 }
 
@@ -960,6 +867,62 @@ THREE.Particles.ParticleSystem.prototype.activate = function() {
 
     }
 
+}
+
+THREE.Particles.ParticleSystem.DefaultPositionUpdater = {
+
+	getValue : function( particle, target, deltaTime ) {
+
+		particle._tempVector3.copy( particle.velocity );
+		particle._tempVector3.multiplyScalar(deltaTime);
+		particle.position.add( particle._tempVector3 );
+
+	}
+}
+
+THREE.Particles.ParticleSystem.DefaultVelocityUpdater = {
+
+	getValue : function( particle, target, deltaTime ) {
+
+		particle._tempVector3.copy( particle.acceleration );
+		particle._tempVector3.multiplyScalar(deltaTime);
+		particle.velocity.add( particle._tempVector3 );
+
+	}
+}
+
+THREE.Particles.ParticleSystem.DefaultRotationUpdater = {
+
+	getValue : function( particle, target, deltaTime ) {
+
+		particle.rotation.set( particle.rotation.x += particle.rotationalSpeed.x * deltaTime );
+
+	}
+}
+
+THREE.Particles.ParticleSystem.DefaultRotationalSpeedUpdater = {
+
+	getValue : function( particle, target, deltaTime ) {
+
+		particle.rotationalSpeed.set( particle.rotationalSpeed.x += particle.rotationalAcceleration.x * deltaTime );
+
+	}
+}
+
+THREE.Particles.ParticleSystem.DefaultUpdater = {
+
+	getValue : function( particle, target, deltaTime ) {
+
+		
+	}
+}
+
+THREE.Particles.ParticleSystem.DefaultInitializer = {
+
+	getValue : function( particle, target, deltaTime ) {
+
+		target.set( 0, 0, 0, 0 );
+	}
 }
 
 //=======================================

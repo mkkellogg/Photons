@@ -207,48 +207,38 @@
 
 		var positionModifier =  new THREE.Particles.RandomModifier( 
 		{ 
-			isScalar: false, 
 			offset: new THREE.Vector3( 0, 0, 0 ), 
 			range: new THREE.Vector3( 10, 0, 10 ), 
 			rangeEdgeClamp: false, 
-			rangeType: THREE.Particles.RangeType.Sphere, 
-			runOnce: true
+			rangeType: THREE.Particles.RangeType.Sphere
 		} );
 
 		var velocityModifier = new THREE.Particles.RandomModifier( 
 		{ 
-			isScalar: false, 
 			offset: new THREE.Vector3( 0, 75, 0 ), 
 			range: new THREE.Vector3( 5, 25, 5 ), 
 			rangeEdgeClamp: false, 
-			rangeType: THREE.Particles.RangeType.Sphere, 
-			runOnce: true
+			rangeType: THREE.Particles.RangeType.Sphere
 		} );
 
 		var accelerationModifier = new THREE.Particles.RandomModifier( 
 		{ 
-			isScalar: false, 
 			offset: new THREE.Vector3( 0, -18, 0 ), 
 			range: new THREE.Vector3( 35, 20, 35 ), 
 			rangeEdgeClamp: false, 
-			rangeType: THREE.Particles.RangeType.Cube, 
-			runOnce: true
+			rangeType: THREE.Particles.RangeType.Cube
 		} );
 
 		var rotationModifier = new THREE.Particles.RandomModifier( 
 		{ 
-			isScalar: true, 
 			offset: new THREE.Particles.SingularVector( 0 ), 
-			range: new THREE.Particles.SingularVector( 360 ), 
-			runOnce: true
+			range: new THREE.Particles.SingularVector( 360 )
 		} );
 
 		var rotationalSpeedModifier = new THREE.Particles.RandomModifier( 
 		{ 
-			isScalar: true, 
 			offset: new THREE.Particles.SingularVector( 50 ), 
-			range: new THREE.Particles.SingularVector( 400 ), 
-			runOnce: true
+			range: new THREE.Particles.SingularVector( 400 )
 		} );
 
 		var atlas1Modifier = new THREE.Particles.EvenIntervalIndexModifier ( 1 );
@@ -277,11 +267,11 @@
 				false )
 		);		
 
-		particleSystem1.bindModifier( 'position', positionModifier );
-		particleSystem1.bindModifier( 'velocity', velocityModifier );
-		particleSystem1.bindModifier( 'acceleration', accelerationModifier );
-		particleSystem1.bindModifier( 'rotation', rotationModifier );
-		particleSystem1.bindModifier( 'rotationalSpeed', rotationalSpeedModifier );
+		particleSystem1.bindInitializer( 'position', positionModifier );
+		particleSystem1.bindInitializer( 'velocity', velocityModifier );
+		particleSystem1.bindInitializer( 'acceleration', accelerationModifier );
+		particleSystem1.bindInitializer( 'rotation', rotationModifier );
+		particleSystem1.bindInitializer( 'rotationalSpeed', rotationalSpeedModifier );
 		particleSystem1.bindModifier( 'atlas', atlas1Modifier );
 		particleSystem1.bindModifier( 'size', sizeModifier );
 		particleSystem1.bindModifier( 'alpha', alphaModifier );
@@ -289,11 +279,11 @@
 
 		var atlas2Modifier = new THREE.Particles.EvenIntervalIndexModifier ( 16 );
 
-		particleSystem2.bindModifier( 'position', positionModifier );
-		particleSystem2.bindModifier( 'velocity', velocityModifier );
-		particleSystem2.bindModifier( 'acceleration', accelerationModifier );
-		particleSystem2.bindModifier( 'rotation', rotationModifier );
-		particleSystem2.bindModifier( 'rotationalSpeed', rotationalSpeedModifier );
+		particleSystem2.bindInitializer( 'position', positionModifier );
+		particleSystem2.bindInitializer( 'velocity', velocityModifier );
+		particleSystem2.bindInitializer( 'acceleration', accelerationModifier );
+		particleSystem2.bindInitializer( 'rotation', rotationModifier );
+		particleSystem2.bindInitializer( 'rotationalSpeed', rotationalSpeedModifier );
 		particleSystem2.bindModifier( 'atlas', atlas2Modifier );
 		particleSystem2.bindModifier( 'size', sizeModifier );
 		particleSystem2.bindModifier( 'alpha', alphaModifier );
@@ -355,24 +345,22 @@
 				false ) 
 		) );
 
-		particleSystem.bindModifier( 'position', new THREE.Particles.RandomModifier( 
+		particleSystem.bindInitializer( 'position', new THREE.Particles.RandomModifier( 
 		{ 
 			isScalar: false, 
 			offset: new THREE.Vector3( 0,  0, 0 ), 
 			range: new THREE.Vector3( 0, 0, 0 ), 
 			rangeEdgeClamp: false, 
-			rangeType: THREE.Particles.RangeType.Sphere, 
-			runOnce: true
+			rangeType: THREE.Particles.RangeType.Sphere
 		} ) );
 
-		particleSystem.bindModifier( 'velocity', new THREE.Particles.RandomModifier( 
+		particleSystem.bindInitializer( 'velocity', new THREE.Particles.RandomModifier( 
 		{ 
 			isScalar: false, 
 			offset: new THREE.Vector3( 0, 25, 0 ), 
 			range: new THREE.Vector3( 10, 2, 10 ), 
 			rangeEdgeClamp: false, 
-			rangeType: THREE.Particles.RangeType.Sphere, 
-			runOnce: true
+			rangeType: THREE.Particles.RangeType.Sphere
 		} ) );
 
 		particleSystems[ ParticleSystemIDs.Flame ] = particleSystem;
@@ -427,24 +415,22 @@
 		) );
 
 
-		particleSystem.bindModifier( 'position', new THREE.Particles.RandomModifier( 
+		particleSystem.bindInitializer( 'position', new THREE.Particles.RandomModifier( 
 		{ 
 			isScalar: false, 
 			offset: new THREE.Vector3( 0,  7, 0 ), 
 			range: new THREE.Vector3( 3, 0, 3 ), 
 			rangeEdgeClamp: false, 
-			rangeType: THREE.Particles.RangeType.Sphere, 
-			runOnce: true
+			rangeType: THREE.Particles.RangeType.Sphere
 		} ) );
 
-		particleSystem.bindModifier( 'velocity', new THREE.Particles.RandomModifier( 
+		particleSystem.bindInitializer( 'velocity', new THREE.Particles.RandomModifier( 
 		{ 
 			isScalar: false, 
 			offset: new THREE.Vector3( 0, 25, 0 ), 
 			range: new THREE.Vector3( 15, 25, 15 ), 
 			rangeEdgeClamp: true, 
-			rangeType: THREE.Particles.RangeType.Sphere, 
-			runOnce: true
+			rangeType: THREE.Particles.RangeType.Sphere
 		} ) );
 
 		particleSystem.bindModifier( 'acceleration', new THREE.Particles.RandomModifier( 
@@ -453,8 +439,7 @@
 			offset: new THREE.Vector3( 0, 15, 0 ), 
 			range: new THREE.Vector3( 180, 280, 180 ), 
 			rangeEdgeClamp: true, 
-			rangeType: THREE.Particles.RangeType.Sphere, 
-			runOnce: false
+			rangeType: THREE.Particles.RangeType.Sphere
 		} ) );
 
 		particleSystems[ ParticleSystemIDs.FlameEmbers ] = particleSystem;
