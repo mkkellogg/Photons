@@ -2,9 +2,9 @@
 * @author Mark Kellogg
 */
 
-var Particles = Particles || {};
+THREE.Particles = THREE.Particles || {};
 
-Particles.FrameSet = function ( timeFrames, valueFrames, isScalar ) {
+THREE.Particles.FrameSet = function ( timeFrames, valueFrames, isScalar ) {
 
 	this.timeFrames = timeFrames || [];
 	this.valueFrames = valueFrames || [];
@@ -12,7 +12,7 @@ Particles.FrameSet = function ( timeFrames, valueFrames, isScalar ) {
 
 }
 
-Particles.FrameSet.prototype.findNextFrameForTimeValue = function( t ) {
+THREE.Particles.FrameSet.prototype.findNextFrameForTimeValue = function( t ) {
 
 	var frameIndex = 0;
 	while( frameIndex < this.timeFrames.length && this.timeFrames[ frameIndex ] < t ) {
@@ -24,19 +24,19 @@ Particles.FrameSet.prototype.findNextFrameForTimeValue = function( t ) {
 	return frameIndex;
 }
 
-Particles.FrameSet.prototype.lerpScalar = function( a, b, f ) {
+THREE.Particles.FrameSet.prototype.lerpScalar = function( a, b, f ) {
 
 	return a + f * ( b - a );
 
 }
 
-Particles.FrameSet.prototype.calculateFraction = function( a, b, z ) {
+THREE.Particles.FrameSet.prototype.calculateFraction = function( a, b, z ) {
 
 	return ( z - a ) / ( b - a );
 
 }
 
-Particles.FrameSet.prototype.interpolateFrameValues = function( t, target ) {
+THREE.Particles.FrameSet.prototype.interpolateFrameValues = function( t, target ) {
 
 	var nextFrameIndex = this.findNextFrameForTimeValue( t );
 	var currentFrameIndex = nextFrameIndex - 1;

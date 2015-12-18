@@ -2,9 +2,9 @@
 * @author Mark Kellogg
 */
 
-var Particles = Particles || {};
+THREE.Particles = THREE.Particles || {};
 
-Particles.RangeType = Object.freeze( {
+THREE.Particles.RangeType = Object.freeze( {
 
 	Cube: 1, 
 	Sphere: 2,
@@ -12,7 +12,7 @@ Particles.RangeType = Object.freeze( {
 
 } );
 
-Particles.Constants = Object.freeze( {
+THREE.Particles.Constants = Object.freeze( {
 
 	VerticesPerParticle: 6,
 	DegreesToRadians: Math.PI / 180.0
@@ -20,14 +20,14 @@ Particles.Constants = Object.freeze( {
 } );
 
 
-Particles.Random = Particles.Random || {};
-Particles.Random.getRandomScalar = function( base, range ) {
+THREE.Particles.Random = THREE.Particles.Random || {};
+THREE.Particles.Random.getRandomScalar = function( base, range ) {
 
 	return base + range * (Math.random() - 0.5);
 
 }
 
-Particles.Random.getRandomVectorCube = function( vector, offset, range, edgeClamp ) {
+THREE.Particles.Random.getRandomVectorCube = function( vector, offset, range, edgeClamp ) {
 
 	var x = Math.random() - 0.5;
 	var y = Math.random() - 0.5;
@@ -50,7 +50,7 @@ Particles.Random.getRandomVectorCube = function( vector, offset, range, edgeClam
 
 }
 
-Particles.Random.getRandomVectorSphere = function( vector, offset, range, edgeClamp ) {
+THREE.Particles.Random.getRandomVectorSphere = function( vector, offset, range, edgeClamp ) {
 
 	var x = Math.random() - 0.5;
 	var y = Math.random() - 0.5;
@@ -69,5 +69,22 @@ Particles.Random.getRandomVectorSphere = function( vector, offset, range, edgeCl
 	vector.addVectors(vector, offset );
 
 	return vector;
+
+}
+
+THREE.Particles.SingularVector = function(value){
+
+	this.x = value;
+
+}
+
+
+THREE.Particles.SingularVector.prototype.copy = function(src){
+
+}
+
+THREE.Particles.SingularVector.prototype.lerp = function(src, f){
+	
+	//return a + f * ( b - a );
 
 }

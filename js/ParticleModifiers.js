@@ -2,13 +2,13 @@
 * @author Mark Kellogg
 */
 
-var Particles = Particles || {};
+THREE.Particles = THREE.Particles || {};
 
 //=======================================
 // Base Modifier
 //=======================================
 
-Particles.Modifier = function () {
+THREE.Particles.Modifier = function () {
 
 	this.runOnce = true;
 
@@ -19,9 +19,9 @@ Particles.Modifier = function () {
 // Random Modifier
 //=======================================
 
-Particles.RandomModifier = function ( params ) {
+THREE.Particles.RandomModifier = function ( params ) {
 
-	Particles.Modifier.call( this );
+	THREE.Particles.Modifier.call( this );
 
 	if( ! params ) params = {};
 
@@ -46,38 +46,38 @@ Particles.RandomModifier = function ( params ) {
 		this.offset = params.offset !== undefined && params.offset !== null ?  params.offset : new THREE.Vector3 (0, 0, 0 );
 		this.range = params.range !== undefined && params.range !== null ?  params.range : new THREE.Vector3 (0, 0, 0 );
 		this.runOnce = params.runOnce !== undefined && params.runOnce !== null ?  params.runOnce : true ;
-		this.rangeType = params.rangeType || Particles.RangeType.Cube;
+		this.rangeType = params.rangeType || THREE.Particles.RangeType.Cube;
 		this.rangeEdgeClamp = params.rangeEdgeClamp !== undefined && params.rangeEdgeClamp !== null ?  params.rangeEdgeClamp : false ;
 
 	}
 
 }
 
-Particles.RandomModifier.prototype = Object.create( Particles.Modifier.prototype );
+THREE.Particles.RandomModifier.prototype = Object.create( THREE.Particles.Modifier.prototype );
 
-Particles.RandomModifier.prototype.initialize = function( particle, target ) {
+THREE.Particles.RandomModifier.prototype.initialize = function( particle, target ) {
 
 	return this.getValue( 0, target );
 
 }
 
-Particles.RandomModifier.prototype.getValue = function( particle, target ) {
+THREE.Particles.RandomModifier.prototype.getValue = function( particle, target ) {
 
 	var val =  undefined;	
 
 	if( this.isScalar ) {
 
-		val =  Particles.Random.getRandomScalar( this.offset, this.range );
+		val =  THREE.Particles.Random.getRandomScalar( this.offset, this.range );
 
 	}  else {
 
-		if( this.rangeType == Particles.RangeType.Cube ) {
+		if( this.rangeType == THREE.Particles.RangeType.Cube ) {
 
-			val =  Particles.Random.getRandomVectorCube( target, this.offset, this.range, this.rangeEdgeClamp );
+			val =  THREE.Particles.Random.getRandomVectorCube( target, this.offset, this.range, this.rangeEdgeClamp );
 
-		} else if( this.rangeType == Particles.RangeType.Sphere ) {
+		} else if( this.rangeType == THREE.Particles.RangeType.Sphere ) {
 
-			val =  Particles.Random.getRandomVectorSphere( target, this.offset, this.range, this.rangeEdgeClamp );
+			val =  THREE.Particles.Random.getRandomVectorSphere( target, this.offset, this.range, this.rangeEdgeClamp );
 
 		}
 		
@@ -92,25 +92,25 @@ Particles.RandomModifier.prototype.getValue = function( particle, target ) {
 // FrameSet Modifier
 //=======================================
 
-Particles.FrameSetModifier = function ( frameset ) {
+THREE.Particles.FrameSetModifier = function ( frameset ) {
 
-	Particles.Modifier.call( this );
+	THREE.Particles.Modifier.call( this );
 
 	this.frameset = frameset;
 	this.runOnce = false;
 
 }
 
-Particles.FrameSetModifier.prototype = Object.create( Particles.Modifier.prototype );
+THREE.Particles.FrameSetModifier.prototype = Object.create( THREE.Particles.Modifier.prototype );
 
 
-Particles.FrameSetModifier.prototype.initialize = function( particle, target ) {
+THREE.Particles.FrameSetModifier.prototype.initialize = function( particle, target ) {
 
 	return this.frameset.interpolateFrameValues( 0, target );
 
 }
 
-Particles.FrameSetModifier.prototype.getValue = function( particle, target ) {
+THREE.Particles.FrameSetModifier.prototype.getValue = function( particle, target ) {
 
 	return this.frameset.interpolateFrameValues( particle.age, target );
 
@@ -121,24 +121,24 @@ Particles.FrameSetModifier.prototype.getValue = function( particle, target ) {
 // EvenIntervalIndex Modifier
 //=======================================
 
-Particles.EvenIntervalIndexModifier = function ( totalSteps ) {
+THREE.Particles.EvenIntervalIndexModifier = function ( totalSteps ) {
 
-	Particles.Modifier.call( this );
+	THREE.Particles.Modifier.call( this );
 	this.totalSteps = Math.floor( totalSteps || 1 );
 	this.runOnce = false;
 
 }
 
-Particles.EvenIntervalIndexModifier.prototype = Object.create( Particles.Modifier.prototype );
+THREE.Particles.EvenIntervalIndexModifier.prototype = Object.create( THREE.Particles.Modifier.prototype );
 
 
-Particles.EvenIntervalIndexModifier.prototype.initialize = function( particle, target ) {
+THREE.Particles.EvenIntervalIndexModifier.prototype.initialize = function( particle, target ) {
 
 	return 0;
 
 }
 
-Particles.EvenIntervalIndexModifier.prototype.getValue = function( particle, target ) {
+THREE.Particles.EvenIntervalIndexModifier.prototype.getValue = function( particle, target ) {
 
 	var fraction = particle.age / particle.lifeSpan;
 	var step = Math.floor( fraction * this.totalSteps );
