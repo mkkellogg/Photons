@@ -40,7 +40,7 @@ THREE.Particles.RandomModifier = function ( params ) {
 
 THREE.Particles.RandomModifier.prototype = Object.create( THREE.Particles.Modifier.prototype );
 
-THREE.Particles.RandomModifier.prototype.getValue = function( particle, target ) {
+THREE.Particles.RandomModifier.prototype.update = function( particle, target ) {
 
 	if( this.rangeType == THREE.Particles.RangeType.Cube ) {
 
@@ -69,7 +69,7 @@ THREE.Particles.FrameSetModifier = function ( frameset ) {
 
 THREE.Particles.FrameSetModifier.prototype = Object.create( THREE.Particles.Modifier.prototype );
 
-THREE.Particles.FrameSetModifier.prototype.getValue = function( particle, target ) {
+THREE.Particles.FrameSetModifier.prototype.update = function( particle, target ) {
 
 	this.frameset.interpolateFrameValues( particle.age, target );
 
@@ -89,7 +89,7 @@ THREE.Particles.EvenIntervalIndexModifier = function ( totalSteps ) {
 
 THREE.Particles.EvenIntervalIndexModifier.prototype = Object.create( THREE.Particles.Modifier.prototype );
 
-THREE.Particles.EvenIntervalIndexModifier.prototype.getValue = function( particle, target ) {
+THREE.Particles.EvenIntervalIndexModifier.prototype.update = function( particle, target ) {
 
 	var fraction = particle.age / particle.lifeSpan;
 	var step = Math.floor( fraction * this.totalSteps );
