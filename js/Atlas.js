@@ -2,7 +2,7 @@
 * @author Mark Kellogg
 */
 
-var Atlas = function( texture, createFirstFullFrame ) {
+THREE.Atlas = function( texture, createFirstFullFrame ) {
 
 	this.texture = texture;
 	this.imageCount = 0;
@@ -16,7 +16,7 @@ var Atlas = function( texture, createFirstFullFrame ) {
 
 };
 
-Atlas.ImageDescriptor = function( left, top, right, bottom ) {
+THREE.Atlas.ImageDescriptor = function( left, top, right, bottom ) {
 
 	this.left = left;
 	this.top = top;
@@ -25,28 +25,28 @@ Atlas.ImageDescriptor = function( left, top, right, bottom ) {
 
 };
 
-Atlas.prototype.addImageDescriptor = function( left, top, right, bottom ) {
+THREE.Atlas.prototype.addImageDescriptor = function( left, top, right, bottom ) {
 
-	this.imageDescriptors[ this.imageCount ] = new Atlas.ImageDescriptor( left, top, right, bottom );
+	this.imageDescriptors[ this.imageCount ] = new THREE.Atlas.ImageDescriptor( left, top, right, bottom );
 	this.imageCount++;
 
 };
 
-Atlas.prototype.getImageDescriptor = function( index ) {
+THREE.Atlas.prototype.getImageDescriptor = function( index ) {
 
 	return this.imageDescriptors[ index ];
 
 };
 
-Atlas.prototype.getTexture = function() {
+THREE.Atlas.prototype.getTexture = function() {
 
 	return this.texture;
 
 };
 
-Atlas.createGridAtlas = function( texture, left, top, right, bottom, xCount, yCount, reverseX, reverseY ) {
+THREE.Atlas.createGridAtlas = function( texture, left, top, right, bottom, xCount, yCount, reverseX, reverseY ) {
 
-	var atlas = new Atlas( texture );
+	var atlas = new THREE.Atlas( texture );
 
 	var width = right - left;
 	var height = top - bottom;

@@ -93,8 +93,8 @@
 
 		smokeType = ParticleSystemIDs.Smoke1;
 
-		var smoke1Atlas = new Atlas( THREE.ImageUtils.loadTexture( 'images/smokeparticle.png' ), true );
-		var smoke2Atlas = Atlas.createGridAtlas( THREE.ImageUtils.loadTexture( 'images/smokeparticles.png' ), 0.0, 1.0, 1.0, 0.0, 4.0, 4.0, false, true );
+		var smoke1Atlas = new THREE.Atlas( THREE.ImageUtils.loadTexture( 'images/smokeparticle.png' ), true );
+		var smoke2Atlas = THREE.Atlas.createGridAtlas( THREE.ImageUtils.loadTexture( 'images/smokeparticles.png' ), 0.0, 1.0, 1.0, 0.0, 4.0, 4.0, false, true );
 
 		var altVertexShader = [
 
@@ -119,24 +119,9 @@
 			THREE.Particles.ParticleSystem.Shader.FragmentVars,
 			"varying vec4 vPosition;", 
 
-			THREE.ShaderChunk[ "common" ],
-
-			"struct PointLight {",
-			"  vec3 position;",
-			"  vec3 color;",
-			"  float distance;",
-			"  float decay;",
-			"  int shadow;",
-			"};",
-
-			"float calcLightAttenuation( float lightDistance, float cutoffDistance, float decayExponent ) {",
-			"	if ( decayExponent > 0.0 ) {",
-			"	  return pow( saturate( 1.0 - lightDistance / cutoffDistance ), decayExponent );",
-			"	}",
-			"	return 1.0;",
-			"}",
-
-			"uniform PointLight pointLights[ NUM_POINT_LIGHTS ];",
+			THREE.ShaderChunk[ "common" ],			
+			THREE.ShaderChunk[ "bsdfs" ],			
+			THREE.ShaderChunk[ "lights_pars" ],		
 
 			"void main()", 
 			"{", 
@@ -182,8 +167,8 @@
 			material: altMaterial1,
 			zSort: true,
 			particleAtlas : smoke1Atlas,	
-			particleReleaseRate : 150,
-			particleLifeSpan : 4.0,		
+			particleReleaseRate : 100,
+			particleLifeSpan : 3.0,		
 			lifespan : 0
 
 		};
@@ -193,8 +178,8 @@
 			material: altMaterial2,
 			zSort: true,
 			particleAtlas : smoke2Atlas,	
-			particleReleaseRate : 150,
-			particleLifeSpan : 4.0,		
+			particleReleaseRate : 100,
+			particleLifeSpan : 3.0,		
 			lifespan : 0
 
 		};
@@ -216,14 +201,14 @@
 		var velocityModifier = new THREE.Particles.RandomModifier( 
 		{ 
 			offset: new THREE.Vector3( 0, 75, 0 ), 
-			range: new THREE.Vector3( 5, 25, 5 ), 
+			range: new THREE.Vector3( 5, 30, 5 ), 
 			rangeEdgeClamp: false, 
 			rangeType: THREE.Particles.RangeType.Sphere
 		} );
 
 		var accelerationModifier = new THREE.Particles.RandomModifier( 
 		{ 
-			offset: new THREE.Vector3( 0, -18, 0 ), 
+			offset: new THREE.Vector3( 0, -22, 0 ), 
 			range: new THREE.Vector3( 35, 20, 35 ), 
 			rangeEdgeClamp: false, 
 			rangeType: THREE.Particles.RangeType.Cube
@@ -245,22 +230,22 @@
 
 		var sizeModifier = new THREE.Particles.FrameSetModifier( 
 			new THREE.Particles.FrameSet( 
-				[ 0, 4 ], 
+				[ 0, 3], 
 				[ new THREE.Vector2( 10, 10 ), 
-				  new THREE.Vector2( 50, 50 ) ], 
+				  new THREE.Vector2( 40, 40 ) ], 
 				  false ) 
 		);
 
 		var alphaModifier = new THREE.Particles.FrameSetModifier( 
 			new THREE.Particles.FrameSet( 
-				[ 0, 1.0, 4 ], 
-				[ new _TPSV( 0.0 ), new _TPSV( 0.1 ), new _TPSV( 0.0 ) ], 
+				[ 0, 1.0, 2.0, 3.0], 
+				[ new _TPSV( 0.0 ), new _TPSV( 0.1 ), new _TPSV( 0.075 ),  new _TPSV( 0.0 ) ], 
 				true 
 				) );
 
 		var colorModifier = new THREE.Particles.FrameSetModifier(
 			new THREE.Particles.FrameSet( 
-				[ 0.0, 1.5, 4 ], 
+				[ 0.0, 1.5, 3 ], 
 				[ new THREE.Vector3( 0.1, 0.1, 0.1 ), 
 				  new THREE.Vector3( 0.35, 0.35, 0.35 ), 
 				  new THREE.Vector3( 0.7, 0.7, 0.7 ) ], 
@@ -311,7 +296,7 @@
 		var particleSystemParams = {
 
 			material: flameMaterial,
-			particleAtlas : Atlas.createGridAtlas( THREE.ImageUtils.loadTexture( 'images/fireloop3.jpg' ), 0.0, 1.0, 1.0, 0.0, 8.0, 8.0, false, true ),		
+			particleAtlas : THREE.Atlas.createGridAtlas( THREE.ImageUtils.loadTexture( 'images/fireloop3.jpg' ), 0.0, 1.0, 1.0, 0.0, 8.0, 8.0, false, true ),		
 			particleReleaseRate : 3,
 			particleLifeSpan : 3,		
 			lifespan : 0
@@ -377,7 +362,7 @@
 		particleSystemParams = {
 
 			material: emberMaterial,
-			particleAtlas : new Atlas( THREE.ImageUtils.loadTexture( 'images/Puff.png' ), true ),
+			particleAtlas : new THREE.Atlas( THREE.ImageUtils.loadTexture( 'images/Puff.png' ), true ),
 			particleReleaseRate : 9,
 			particleLifeSpan : 3,		
 			lifespan : 0
