@@ -1,7 +1,7 @@
 # Blender v2.76 (sub 0) OBJ File: ''
 # www.blender.org
-mtllib treeplain.mtl
-o Cone002_Untitled
+mtllib pinetree.mtl
+o pinetree
 v 19.916681 25.006710 3.126297
 v 14.998528 25.006710 -10.386223
 v 2.545325 25.006710 -17.576080

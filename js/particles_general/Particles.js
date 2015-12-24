@@ -1,14 +1,14 @@
 /**
-* @author Mark Kellogg
+* @author Mark Kellogg - http://www.github.com/mkkellogg
 */
 
 THREE.Particles = THREE.Particles || {};
 
 THREE.Particles.RangeType = Object.freeze( {
 
-	Cube: 1, 
+	Cube: 1,
 	Sphere: 2,
-	Plane: 3 
+	Plane: 3
 
 } );
 
@@ -29,10 +29,6 @@ THREE.Particles.Random.getRandomVectorCube = function( vector, offset, range, ed
 	var z = Math.random() - 0.5;
 	var w = Math.random() - 0.5;
 
-	if(!vector.set){
-		console.log(vector);
-	}
-
 	vector.set( x, y, z, w );
 
 	if ( edgeClamp ) {
@@ -42,7 +38,7 @@ THREE.Particles.Random.getRandomVectorCube = function( vector, offset, range, ed
 
 	}
 
-	vector.multiplyVectors( range, vector );	
+	vector.multiplyVectors( range, vector );
 	vector.addVectors( offset, vector );
 
 }
@@ -58,61 +54,62 @@ THREE.Particles.Random.getRandomVectorSphere = function( vector, offset, range, 
 	vector.normalize();
 
 	vector.multiplyVectors( vector, range );
-	
+
 	if ( ! edgeClamp ) {
 
-		var adjust =  Math.random() * 2.0 - 1.0;
+		var adjust = Math.random() * 2.0 - 1.0;
 		vector.multiplyScalar( adjust );
+
 	}
 
-	vector.addVectors(vector, offset );
+	vector.addVectors( vector, offset );
 
 }
 
-THREE.Particles.SingularVector = function( x ){
+THREE.Particles.SingularVector = function( x ) {
 
 	this.x = x;
 
 }
 
 
-THREE.Particles.SingularVector.prototype.copy = function( dest ){
+THREE.Particles.SingularVector.prototype.copy = function( dest ) {
 
 	this.x = dest.x;
 
 }
 
-THREE.Particles.SingularVector.prototype.set = function( x ){
+THREE.Particles.SingularVector.prototype.set = function( x ) {
 
 	this.x = x;
 
 }
 
-THREE.Particles.SingularVector.prototype.normalize = function(){
+THREE.Particles.SingularVector.prototype.normalize = function() {
 
 	//return this;
 
 }
 
-THREE.Particles.SingularVector.prototype.multiplyScalar = function( x ){
+THREE.Particles.SingularVector.prototype.multiplyScalar = function( x ) {
 
 	this.x *= x;
 
 }
 
-THREE.Particles.SingularVector.prototype.lerp = function( dest, f ){
-	
+THREE.Particles.SingularVector.prototype.lerp = function( dest, f ) {
+
 	this.x = this.x + f * ( dest.x - this.x );
 
 }
 
-THREE.Particles.SingularVector.prototype.addVectors = function( vector, offset ){
+THREE.Particles.SingularVector.prototype.addVectors = function( vector, offset ) {
 
 	vector.x += offset;
 
 }
 
-THREE.Particles.SingularVector.prototype.multiplyVectors = function( vector, rangeVector ){
+THREE.Particles.SingularVector.prototype.multiplyVectors = function( vector, rangeVector ) {
 
 	vector.x *= rangeVector.x;
 

@@ -1,5 +1,5 @@
 /**
-* @author Mark Kellogg
+* @author Mark Kellogg - http://www.github.com/mkkellogg
 */
 
 THREE.Atlas = function( texture, createFirstFullFrame ) {
@@ -8,7 +8,7 @@ THREE.Atlas = function( texture, createFirstFullFrame ) {
 	this.imageCount = 0;
 	this.imageDescriptors = [];
 
-	if( createFirstFullFrame ) {
+	if ( createFirstFullFrame ) {
 
 		this.addImageDescriptor( 0, 1, 1, 0 );
 
@@ -28,7 +28,7 @@ THREE.Atlas.ImageDescriptor = function( left, top, right, bottom ) {
 THREE.Atlas.prototype.addImageDescriptor = function( left, top, right, bottom ) {
 
 	this.imageDescriptors[ this.imageCount ] = new THREE.Atlas.ImageDescriptor( left, top, right, bottom );
-	this.imageCount++;
+	this.imageCount ++;
 
 };
 
@@ -65,28 +65,28 @@ THREE.Atlas.createGridAtlas = function( texture, left, top, right, bottom, xCoun
 
 	if ( reverseX ) {
 
-		xInc = -1;
+		xInc = - 1;
 		xStart = xCount - 1;
-		xFinish = -1;
+		xFinish = - 1;
 
 	}
 
 	if ( reverseY ) {
 
-		yInc = -1;
+		yInc = - 1;
 		yStart = yCount - 1;
-		yFinish = -1;
+		yFinish = - 1;
 
 	}
 
-	for( var y = yStart; y != yFinish; y += yInc ) {
+	for ( var y = yStart; y != yFinish; y += yInc ) {
 
-			for( var x = xStart; x != xFinish; x += xInc ) {
+		for ( var x = xStart; x != xFinish; x += xInc ) {
 
 			var currentLeft = left + xBlockSize * x;
 			var currentTop = bottom + yBlockSize * ( y + 1 );
 			var currentRight = currentLeft + xBlockSize;
-			var currentBottom =  currentTop - yBlockSize;
+			var currentBottom = currentTop - yBlockSize;
 
 			atlas.addImageDescriptor( currentLeft, currentTop, currentRight, currentBottom );
 

@@ -1,7 +1,7 @@
-# Blender MTL File: 'tree.blend'
+# Blender MTL File: 'None'
 # Material Count: 1
 
-newmtl 02_-_Default
+newmtl pinetree
 Ns 19.607843
 Ka 1.000000 1.000000 1.000000
 Kd 0.470588 0.470588 0.470588
@@ -10,4 +10,4 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 1
-map_Kd tree-noel1.png
+map_Kd pinetree.png

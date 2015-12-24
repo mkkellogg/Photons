@@ -3,41 +3,61 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
-    <script type="text/javascript" src="js/jquery-1.10.2.min.js"></script>
     <script src="../three.js/build/three.js"></script>
 	<script src="../three.js/examples/js/Detector.js"></script>
 	<script src="../three.js/examples/js/libs/stats.min.js"></script>
 	<script src="../three.js/examples/js/controls/OrbitControls.js"></script>	
 	<script src="../three.js/examples/js/loaders/OBJLoader.js"></script>
 	<script src='../three.js/examples/js/libs/dat.gui.min.js'></script>
-	<script src="js/Atlas.js"></script>
-	<script src="js/Particles.js"></script>
-	<script src="js/ParticleSystem.js"></script>
-	<script src="js/ParticleSystemFrameset.js"></script>
-	<script src="js/ParticleModifiers.js"></script>
-	<script src="js/ParticleSystemUtil.js"></script>
+	<script src="js/particles_general/Atlas.js"></script>
+	<script src="js/particles_general/Particles.js"></script>
+	<script src="js/particles_general/ParticleSystem.js"></script>
+	<script src="js/particles_general/ParticleSystemFrameset.js"></script>
+	<script src="js/particles_general/ParticleModifiers.js"></script>
+	<script src="js/particles_general/ParticleSystemUtil.js"></script>
 
-    <link rel="stylesheet" href="css/main.css" type="text/css" media="screen" />
+    <style>
+		body {
+			font-family: Monospace;
+			background-color: #000;
+			color: #fff;
+			margin: 0px;
+			overflow: hidden;
+		}
+		#info {
+			position: absolute;
+			top: 10px;
+			width: 100%;
+			text-align: center;
+			z-index: 50;
+			display:block;
+		}
+		#info a { color: #f00; font-weight: bold; text-decoration: underline; cursor: pointer }
+	</style>
     <title>Three.js Particle System</title>
 </head>
 <body>
+
+<div id="info">
+	<a href="http://threejs.org" target="_blank">three.js</a> - General Purpose Particle System by <a href="https://github.com/mkkellogg">mkkellogg</a>
+</div>
 
 <div id="renderingContainer" style="position: absolute; left:0px; top:0px"></div>
 
 <script>
 
 	var ParticleSystemIDs = Object.freeze(
-	{
-		Smoke1: 1,
-		Smoke2: 2,
-		Flame: 3,
-		FlameEmbers: 4
-	});
+		{
+			Smoke1: 1,
+			Smoke2: 2,
+			Flame: 3,
+			FlameEmbers: 4
+		} );
 
 	var ParticleEnvironmentIDs = Object.freeze(
-	{
-		Campfire: 1
-	});
+		{
+			Campfire: 1
+		} );
 
 	var rendererContainer;
 	var screenWidth, screenHeight;
@@ -48,19 +68,22 @@
 	var smokeActive, smokeType;
 	var particleSystemsParent;
 
-	$( document ).ready( function() {
 
-		init();		
+	window.addEventListener( "load", function load( event ) {
 
-	});
+		window.removeEventListener( "load", load, false );
+		init();
+
+	}, false );
+
 
 	function init() {
 
-		clock = new THREE.Clock();		
+		clock = new THREE.Clock();
 
-		getScreenDimensions();		
-		
-		initScene();	
+		getScreenDimensions();
+
+		initScene();
 		initGUI();
 		initListeners();
 
@@ -71,19 +94,19 @@
 			initParticleSystems();
 			startParticleSystemEnvironment ( ParticleEnvironmentIDs.Campfire );
 			initRenderer();
-			initControls();		
-		    initStats();	
+			initControls();
+			    initStats();
 			animate();
 
-		});		
+		} );
 
 	}
 
 	function initParticleSystems() {
 
 		particleSystems = {};
-		initializeFlameSystem();	
-		initializeSmokeSystem();	
+		initializeFlameSystem();
+		initializeSmokeSystem();
 
 	}
 
@@ -93,44 +116,44 @@
 
 		smokeType = ParticleSystemIDs.Smoke1;
 
-		var smoke1Atlas = new THREE.Atlas( THREE.ImageUtils.loadTexture( 'images/smokeparticle.png' ), true );
-		var smoke2Atlas = THREE.Atlas.createGridAtlas( THREE.ImageUtils.loadTexture( 'images/smokeparticles.png' ), 0.0, 1.0, 1.0, 0.0, 4.0, 4.0, false, true );
+		var smoke1Atlas = new THREE.Atlas( THREE.ImageUtils.loadTexture( 'textures/campfire/smokeparticle.png' ), true );
+		var smoke2Atlas = THREE.Atlas.createGridAtlas( THREE.ImageUtils.loadTexture( 'textures/campfire/smokeparticles.png' ), 0.0, 1.0, 1.0, 0.0, 4.0, 4.0, false, true );
 
 		var altVertexShader = [
 
 			THREE.Particles.ParticleSystem.Shader.VertexVars,
-			"varying vec4 vPosition;", 
+			"varying vec4 vPosition;",
 
 			THREE.Particles.ParticleSystem.Shader.ParticleVertexQuadPositionFunction,
 
 			"void main()",
 			"{",
-				"vColor = customColor;",	
+				"vColor = customColor;",
 				"vUV = uv;",
-				"vec4 quadPos = getQuadPosition();",  
+				"vec4 quadPos = getQuadPosition();",
 				"vPosition = viewMatrix * quadPos;",
 				"gl_Position = projectionMatrix * vPosition;",
 			"}"
 
-		].join("\n");
+		].join( "\n" );
 
 		var altFragmentShader = [
 
 			THREE.Particles.ParticleSystem.Shader.FragmentVars,
-			"varying vec4 vPosition;", 
+			"varying vec4 vPosition;",
 
-			THREE.ShaderChunk[ "common" ],			
-			THREE.ShaderChunk[ "bsdfs" ],			
-			THREE.ShaderChunk[ "lights_pars" ],		
+			THREE.ShaderChunk[ "common" ],
+			THREE.ShaderChunk[ "bsdfs" ],
+			THREE.ShaderChunk[ "lights_pars" ],
 
-			"void main()", 
-			"{", 
+			"void main()",
+			"{",
 
 				"vec4 textureColor = texture2D( texture, vUV );",
 				"vec4 viewPosition = -vPosition;",
 				"vec3 outgoingLight = vec3( 0.0 );",
 				"vec4 diffuseColor = vColor * textureColor;",
-				
+
 				"vec3 totalDiffuseLight = vec3( 0.0 );",
 
 				"#if NUM_POINT_LIGHTS > 0",
@@ -144,12 +167,12 @@
 					"}",
 				"#endif",
 
-				"gl_FragColor = diffuseColor * vec4( totalDiffuseLight, 1.0 );",    
+				"gl_FragColor = diffuseColor * vec4( totalDiffuseLight, 1.0 );",
 			"}"
 
-		].join("\n");
+		].join( "\n" );
 
-		var customUniforms1 = THREE.UniformsUtils.merge([ THREE.UniformsLib['lights'], THREE.UniformsLib['ambient'] ]);
+		var customUniforms1 = THREE.UniformsUtils.merge( [ THREE.UniformsLib[ 'lights' ], THREE.UniformsLib[ 'ambient' ] ] );
 
 		var altMaterial1 = THREE.Particles.ParticleSystem.createMaterial( altVertexShader, altFragmentShader, customUniforms1 );
 		altMaterial1.lights = true;
@@ -166,9 +189,9 @@
 
 			material: altMaterial1,
 			zSort: true,
-			particleAtlas : smoke1Atlas,	
+			particleAtlas : smoke1Atlas,
 			particleReleaseRate : 100,
-			particleLifeSpan : 3.0,		
+			particleLifeSpan : 3.0,
 			lifespan : 0
 
 		};
@@ -177,80 +200,80 @@
 
 			material: altMaterial2,
 			zSort: true,
-			particleAtlas : smoke2Atlas,	
+			particleAtlas : smoke2Atlas,
 			particleReleaseRate : 100,
-			particleLifeSpan : 3.0,		
+			particleLifeSpan : 3.0,
 			lifespan : 0
 
 		};
 
 		var particleSystem1 = new THREE.Particles.ParticleSystem();
-		particleSystem1.initialize( camera, particleSystemParams1 );	
+		particleSystem1.initialize( camera, particleSystemParams1 );
 
 		var particleSystem2 = new THREE.Particles.ParticleSystem();
-		particleSystem2.initialize( camera, particleSystemParams2 );	
+		particleSystem2.initialize( camera, particleSystemParams2 );
 
-		var positionModifier =  new THREE.Particles.RandomModifier( 
-		{ 
-			offset: new THREE.Vector3( 0, 0, 0 ), 
-			range: new THREE.Vector3( 10, 0, 10 ), 
-			rangeEdgeClamp: false, 
-			rangeType: THREE.Particles.RangeType.Sphere
-		} );
+		var positionModifier = new THREE.Particles.RandomModifier(
+			{
+				offset: new THREE.Vector3( 0, 0, 0 ),
+				range: new THREE.Vector3( 10, 0, 10 ),
+				rangeEdgeClamp: false,
+				rangeType: THREE.Particles.RangeType.Sphere
+			} );
 
-		var velocityModifier = new THREE.Particles.RandomModifier( 
-		{ 
-			offset: new THREE.Vector3( 0, 75, 0 ), 
-			range: new THREE.Vector3( 5, 30, 5 ), 
-			rangeEdgeClamp: false, 
-			rangeType: THREE.Particles.RangeType.Sphere
-		} );
+		var velocityModifier = new THREE.Particles.RandomModifier(
+			{
+				offset: new THREE.Vector3( 0, 75, 0 ),
+				range: new THREE.Vector3( 5, 30, 5 ),
+				rangeEdgeClamp: false,
+				rangeType: THREE.Particles.RangeType.Sphere
+			} );
 
-		var accelerationModifier = new THREE.Particles.RandomModifier( 
-		{ 
-			offset: new THREE.Vector3( 0, -22, 0 ), 
-			range: new THREE.Vector3( 35, 20, 35 ), 
-			rangeEdgeClamp: false, 
-			rangeType: THREE.Particles.RangeType.Cube
-		} );
+		var accelerationModifier = new THREE.Particles.RandomModifier(
+			{
+				offset: new THREE.Vector3( 0, - 22, 0 ),
+				range: new THREE.Vector3( 35, 20, 35 ),
+				rangeEdgeClamp: false,
+				rangeType: THREE.Particles.RangeType.Cube
+			} );
 
-		var rotationModifier = new THREE.Particles.RandomModifier( 
-		{ 
-			offset: new THREE.Particles.SingularVector( 0 ), 
-			range: new THREE.Particles.SingularVector( 360 )
-		} );
+		var rotationModifier = new THREE.Particles.RandomModifier(
+			{
+				offset: new THREE.Particles.SingularVector( 0 ),
+				range: new THREE.Particles.SingularVector( 360 )
+			} );
 
-		var rotationalSpeedModifier = new THREE.Particles.RandomModifier( 
-		{ 
-			offset: new THREE.Particles.SingularVector( 50 ), 
-			range: new THREE.Particles.SingularVector( 400 )
-		} );
+		var rotationalSpeedModifier = new THREE.Particles.RandomModifier(
+			{
+				offset: new THREE.Particles.SingularVector( 50 ),
+				range: new THREE.Particles.SingularVector( 400 )
+			} );
 
 		var atlas1Modifier = new THREE.Particles.EvenIntervalIndexModifier ( 1 );
 
-		var sizeModifier = new THREE.Particles.FrameSetModifier( 
-			new THREE.Particles.FrameSet( 
-				[ 0, 3], 
-				[ new THREE.Vector2( 10, 10 ), 
-				  new THREE.Vector2( 40, 40 ) ], 
-				  false ) 
+		var sizeModifier = new THREE.Particles.FrameSetModifier(
+			new THREE.Particles.FrameSet(
+				[ 0, 3 ],
+				[ new THREE.Vector2( 10, 10 ),
+				new THREE.Vector2( 40, 40 ) ],
+				false )
 		);
 
-		var alphaModifier = new THREE.Particles.FrameSetModifier( 
-			new THREE.Particles.FrameSet( 
-				[ 0, 1.0, 2.0, 3.0], 
-				[ new _TPSV( 0.0 ), new _TPSV( 0.1 ), new _TPSV( 0.075 ),  new _TPSV( 0.0 ) ], 
-				true 
+		var alphaModifier = new THREE.Particles.FrameSetModifier(
+			new THREE.Particles.FrameSet(
+				[ 0, 1.0, 2.0, 3.0 ],
+				[ new _TPSV( 0.0 ), new _TPSV( 0.1 ), new _TPSV( 0.075 ), new _TPSV( 0.0 ) ],
+				true
 				) );
 
 		var colorModifier = new THREE.Particles.FrameSetModifier(
-			new THREE.Particles.FrameSet( 
-				[ 0.0, 1.5, 3 ], 
-				[ new THREE.Vector3( 0.1, 0.1, 0.1 ), 
-				  new THREE.Vector3( 0.35, 0.35, 0.35 ), 
-				  new THREE.Vector3( 0.7, 0.7, 0.7 ) ], 
+			new THREE.Particles.FrameSet(
+				[ 0.0, 1.5, 3 ],
+				[ new THREE.Vector3( 0.1, 0.1, 0.1 ),
+				new THREE.Vector3( 0.35, 0.35, 0.35 ),
+				new THREE.Vector3( 0.7, 0.7, 0.7 ) ],
 				false )
-		);		
+		);
 
 		particleSystem1.bindInitializer( 'position', positionModifier );
 		particleSystem1.bindInitializer( 'velocity', velocityModifier );
@@ -274,15 +297,15 @@
 		particleSystem2.bindModifier( 'alpha', alphaModifier );
 		particleSystem2.bindModifier( 'color', colorModifier );
 
-		particleSystems[ ParticleSystemIDs.Smoke1 ] = particleSystem1;	
-		particleSystems[ ParticleSystemIDs.Smoke2 ] = particleSystem2;	
+		particleSystems[ ParticleSystemIDs.Smoke1 ] = particleSystem1;
+		particleSystems[ ParticleSystemIDs.Smoke2 ] = particleSystem2;
 
 		particleSystemsParent.add ( particleSystems[ ParticleSystemIDs.Smoke1 ] );
 		particleSystemsParent.add ( particleSystems[ ParticleSystemIDs.Smoke2 ] );
 
 	}
 
-	function initializeFlameSystem() {		
+	function initializeFlameSystem() {
 
 		var _TPSV = THREE.Particles.SingularVector;
 
@@ -296,9 +319,9 @@
 		var particleSystemParams = {
 
 			material: flameMaterial,
-			particleAtlas : THREE.Atlas.createGridAtlas( THREE.ImageUtils.loadTexture( 'images/fireloop3.jpg' ), 0.0, 1.0, 1.0, 0.0, 8.0, 8.0, false, true ),		
+			particleAtlas : THREE.Atlas.createGridAtlas( THREE.ImageUtils.loadTexture( 'textures/campfire/fireloop3.jpg' ), 0.0, 1.0, 1.0, 0.0, 8.0, 8.0, false, true ),
 			particleReleaseRate : 3,
-			particleLifeSpan : 3,		
+			particleLifeSpan : 3,
 			lifespan : 0
 
 		};
@@ -307,46 +330,46 @@
 
 		particleSystem.bindModifier( "atlas", new THREE.Particles.EvenIntervalIndexModifier ( 64 ) );
 
-		particleSystem.bindModifier( "size", new THREE.Particles.FrameSetModifier( 
-			new THREE.Particles.FrameSet( 
-				[ 0, 3], 
-				[ new THREE.Vector3( 20, 25 ), 
-				  new THREE.Vector3( 20, 25 ) ], 
-				false ) 
+		particleSystem.bindModifier( "size", new THREE.Particles.FrameSetModifier(
+			new THREE.Particles.FrameSet(
+				[ 0, 3 ],
+				[ new THREE.Vector3( 20, 25 ),
+				new THREE.Vector3( 20, 25 ) ],
+				false )
 		) );
 
-		particleSystem.bindModifier( "alpha", new THREE.Particles.FrameSetModifier( 
-			new THREE.Particles.FrameSet( 
-				[ 0, 0.2, 1.2, 2.0, 3 ], 
-				[ new _TPSV( 0 ), new _TPSV( .3 ), new _TPSV( 1 ), new _TPSV( 1 ), new _TPSV( 0 ) ], 
-				true) 
+		particleSystem.bindModifier( "alpha", new THREE.Particles.FrameSetModifier(
+			new THREE.Particles.FrameSet(
+				[ 0, 0.2, 1.2, 2.0, 3 ],
+				[ new _TPSV( 0 ), new _TPSV( .3 ), new _TPSV( 1 ), new _TPSV( 1 ), new _TPSV( 0 ) ],
+				true )
 		) );
 
-		particleSystem.bindModifier( "color", new THREE.Particles.FrameSetModifier( 
-			new THREE.Particles.FrameSet( 
-				[ 0, 3 ], 
-				[ new THREE.Vector3( 1.4, 1.4, 1.4 ), 
-				  new THREE.Vector3( 1.4, 1.4, 1.4 ) ],
-				false ) 
+		particleSystem.bindModifier( "color", new THREE.Particles.FrameSetModifier(
+			new THREE.Particles.FrameSet(
+				[ 0, 3 ],
+				[ new THREE.Vector3( 1.4, 1.4, 1.4 ),
+				new THREE.Vector3( 1.4, 1.4, 1.4 ) ],
+				false )
 		) );
 
-		particleSystem.bindInitializer( 'position', new THREE.Particles.RandomModifier( 
-		{ 
-			isScalar: false, 
-			offset: new THREE.Vector3( 0,  0, 0 ), 
-			range: new THREE.Vector3( 0, 0, 0 ), 
-			rangeEdgeClamp: false, 
-			rangeType: THREE.Particles.RangeType.Sphere
-		} ) );
+		particleSystem.bindInitializer( 'position', new THREE.Particles.RandomModifier(
+			{
+				isScalar: false,
+				offset: new THREE.Vector3( 0, 0, 0 ),
+				range: new THREE.Vector3( 0, 0, 0 ),
+				rangeEdgeClamp: false,
+				rangeType: THREE.Particles.RangeType.Sphere
+			} ) );
 
-		particleSystem.bindInitializer( 'velocity', new THREE.Particles.RandomModifier( 
-		{ 
-			isScalar: false, 
-			offset: new THREE.Vector3( 0, 25, 0 ), 
-			range: new THREE.Vector3( 10, 2, 10 ), 
-			rangeEdgeClamp: false, 
-			rangeType: THREE.Particles.RangeType.Sphere
-		} ) );
+		particleSystem.bindInitializer( 'velocity', new THREE.Particles.RandomModifier(
+			{
+				isScalar: false,
+				offset: new THREE.Vector3( 0, 25, 0 ),
+				range: new THREE.Vector3( 10, 2, 10 ),
+				rangeEdgeClamp: false,
+				rangeType: THREE.Particles.RangeType.Sphere
+			} ) );
 
 		particleSystems[ ParticleSystemIDs.Flame ] = particleSystem;
 		particleSystemsParent.add ( particleSystems[ ParticleSystemIDs.Flame ] );
@@ -362,9 +385,9 @@
 		particleSystemParams = {
 
 			material: emberMaterial,
-			particleAtlas : new THREE.Atlas( THREE.ImageUtils.loadTexture( 'images/Puff.png' ), true ),
-			particleReleaseRate : 9,
-			particleLifeSpan : 3,		
+			particleAtlas : new THREE.Atlas( THREE.ImageUtils.loadTexture( 'textures/campfire/Puff.png' ), true ),
+			particleReleaseRate : 18,
+			particleLifeSpan : 3,
 			lifespan : 0
 
 		};
@@ -373,59 +396,58 @@
 
 		particleSystem.bindModifier( "atlas", new THREE.Particles.EvenIntervalIndexModifier ( 1 ) );
 
-		particleSystem.bindModifier( 'size', new THREE.Particles.RandomModifier( 
-		{ 
-			isScalar: false, 
-			offset: new THREE.Vector3( .25, .25, 0.0 ), 
-			range: new THREE.Vector3( 0.05, 0.05, 0.0 ), 
-			rangeEdgeClamp: false, 
-			rangeType: THREE.Particles.RangeType.Sphere, 
-			runOnce: true
-		} ) );
+		particleSystem.bindModifier( 'size', new THREE.Particles.RandomModifier(
+			{
+				isScalar: false,
+				offset: new THREE.Vector3( .25, .25, 0.0 ),
+				range: new THREE.Vector3( 0.05, 0.05, 0.0 ),
+				rangeEdgeClamp: false,
+				rangeType: THREE.Particles.RangeType.Sphere,
+				runOnce: true
+			} ) );
 
-		particleSystem.bindModifier( "alpha", new THREE.Particles.FrameSetModifier( 
-			new THREE.Particles.FrameSet( 
-				[ 0, 0.2, 1.2, 2.0, 3 ], 
-				[ new _TPSV( 0 ), new _TPSV( 1 ), new _TPSV( 1 ), new _TPSV( 1 ), new _TPSV( 0 ) ], 
-				true ) 
-		 ) );
-
-		particleSystem.bindModifier( "color", new THREE.Particles.FrameSetModifier( 
-			new THREE.Particles.FrameSet( 
-				[0, 2, 3], 
-				[ new THREE.Vector3( 1.3, 1.3, 0 ), 
-				  new THREE.Vector3( .75, .4, .4 ), 
-				  new THREE.Vector3( .6, .6, .6 ) ], 
-				 false ) 
+		particleSystem.bindModifier( "alpha", new THREE.Particles.FrameSetModifier(
+			new THREE.Particles.FrameSet(
+				[ 0, 0.2, 1.2, 2.0, 3 ],
+				[ new _TPSV( 0 ), new _TPSV( 1 ), new _TPSV( 1 ), new _TPSV( 1 ), new _TPSV( 0 ) ],
+				true )
 		) );
 
+		particleSystem.bindModifier( "color", new THREE.Particles.FrameSetModifier(
+			new THREE.Particles.FrameSet(
+				[ 0, 2, 3 ],
+				[ new THREE.Vector3( 1.3, 1.3, 0 ),
+				new THREE.Vector3( .75, .4, .4 ),
+				new THREE.Vector3( .6, .6, .6 ) ],
+				false )
+		) );
 
-		particleSystem.bindInitializer( 'position', new THREE.Particles.RandomModifier( 
-		{ 
-			isScalar: false, 
-			offset: new THREE.Vector3( 0,  7, 0 ), 
-			range: new THREE.Vector3( 3, 0, 3 ), 
-			rangeEdgeClamp: false, 
-			rangeType: THREE.Particles.RangeType.Sphere
-		} ) );
+		particleSystem.bindInitializer( 'position', new THREE.Particles.RandomModifier(
+			{
+				isScalar: false,
+				offset: new THREE.Vector3( 0, 7, 0 ),
+				range: new THREE.Vector3( 3, 0, 3 ),
+				rangeEdgeClamp: false,
+				rangeType: THREE.Particles.RangeType.Sphere
+			} ) );
 
-		particleSystem.bindInitializer( 'velocity', new THREE.Particles.RandomModifier( 
-		{ 
-			isScalar: false, 
-			offset: new THREE.Vector3( 0, 25, 0 ), 
-			range: new THREE.Vector3( 15, 25, 15 ), 
-			rangeEdgeClamp: true, 
-			rangeType: THREE.Particles.RangeType.Sphere
-		} ) );
+		particleSystem.bindInitializer( 'velocity', new THREE.Particles.RandomModifier(
+			{
+				isScalar: false,
+				offset: new THREE.Vector3( 0, 25, 0 ),
+				range: new THREE.Vector3( 15, 25, 15 ),
+				rangeEdgeClamp: true,
+				rangeType: THREE.Particles.RangeType.Sphere
+			} ) );
 
-		particleSystem.bindModifier( 'acceleration', new THREE.Particles.RandomModifier( 
-		{ 
-			isScalar: false, 
-			offset: new THREE.Vector3( 0, 15, 0 ), 
-			range: new THREE.Vector3( 180, 280, 180 ), 
-			rangeEdgeClamp: true, 
-			rangeType: THREE.Particles.RangeType.Sphere
-		} ) );
+		particleSystem.bindModifier( 'acceleration', new THREE.Particles.RandomModifier(
+			{
+				isScalar: false,
+				offset: new THREE.Vector3( 0, 15, 0 ),
+				range: new THREE.Vector3( 180, 280, 180 ),
+				rangeEdgeClamp: true,
+				rangeType: THREE.Particles.RangeType.Sphere
+			} ) );
 
 		particleSystems[ ParticleSystemIDs.FlameEmbers ] = particleSystem;
 		particleSystemsParent.add( particleSystems[ ParticleSystemIDs.FlameEmbers ] );
@@ -434,40 +456,54 @@
 
 	function initGUI() {
 
-		gui = new dat.GUI();	
-		parameters = 
-		{
-			smoke:  function() { smokeActive = !smokeActive; updateSmokeType(); },	
-			smokeType:  null,					
-			embers:  function() { toggleParticleSystem( ParticleSystemIDs.FlameEmbers ); },	
-			flame:  function() { toggleParticleSystem( ParticleSystemIDs.Flame ); },	
-		};
+		gui = new dat.GUI();
+		parameters =
+			{
+				smoke: function() {
 
-		gui.add(parameters, 'smokeType', { Basic: ParticleSystemIDs.Smoke1, Animated: ParticleSystemIDs.Smoke2 } ).name( "Smoke type" ).onChange( function () {
-			
-			smokeType = parameters.smokeType;
-			updateSmokeType();
+					smokeActive = ! smokeActive; updateSmokeType();
 
-		});
-		gui.add( parameters, 'smoke' ).name( "Toggle smoke" );	
-		gui.add( parameters, 'embers' ).name( "Toggle embers" );	
-		gui.add( parameters, 'flame' ).name( "Toggle flame" );	
+				},
+				smokeType: null,
+				embers: function() {
+
+					toggleParticleSystem( ParticleSystemIDs.FlameEmbers );
+
+				},
+				flame: function() {
+
+					toggleParticleSystem( ParticleSystemIDs.Flame );
+
+				},
+			};
+
+		gui.add( parameters, 'smokeType', { Basic: ParticleSystemIDs.Smoke1, Animated: ParticleSystemIDs.Smoke2 } ).name( "Smoke type" ).onChange( function() {
+
+				smokeType = parameters.smokeType;
+				updateSmokeType();
+
+			} );
+		gui.add( parameters, 'smoke' ).name( "Toggle smoke" );
+		gui.add( parameters, 'embers' ).name( "Toggle embers" );
+		gui.add( parameters, 'flame' ).name( "Toggle flame" );
 		gui.open();
+
+		gui.domElement.parentNode.style.zIndex = 100;
 
 	}
 
 	function initListeners() {
 
-        window.addEventListener( 'resize', onWindowResize, false );
-        
-    }
+		window.addEventListener( 'resize', onWindowResize, false );
+
+	    }
 
 	function initRenderer() {
 
 		renderer = new THREE.WebGLRenderer();
-        renderer.setSize( screenWidth, screenHeight );
-        renderer.setClearColor( 0x000000 );
-        renderer.shadowMap.enabled = true;
+		renderer.setSize( screenWidth, screenHeight );
+		renderer.setClearColor( 0x000000 );
+		renderer.shadowMap.enabled = true;
 		renderer.shadowMap.type = THREE.BasicShadowMap;
 		rendererContainer = document.getElementById( 'renderingContainer' );
 		rendererContainer.appendChild( renderer.domElement );
@@ -476,11 +512,11 @@
 
 	function initLights() {
 
-   		ambientLight = new THREE.AmbientLight( 0x101010 );
-        scene.add( ambientLight );
+		ambientLight = new THREE.AmbientLight( 0x101010 );
+		scene.add( ambientLight );
 
-		pointLight = new THREE.PointLight( 0xffffff, 2, 1000, 1);
-		pointLight.position.set(0,40,0);
+		pointLight = new THREE.PointLight( 0xffffff, 2, 1000, 1 );
+		pointLight.position.set( 0, 40, 0 );
 		pointLight.castShadow = true;
 		pointLight.shadowCameraNear = 1;
 		pointLight.shadowCameraFar = 1000;
@@ -488,8 +524,8 @@
 		// pointLight.shadowCameraVisible = true;
 		pointLight.shadowMapWidth = 4096;
 		pointLight.shadowMapHeight = 2048;
-		pointLight.shadowBias = -0.5;
-		scene.add(pointLight);
+		pointLight.shadowBias = - 0.5;
+		scene.add( pointLight );
 
 	}
 
@@ -501,67 +537,74 @@
 
 		function incrementAndCheckLoadComplete() {
 
-			loadedCount++;
+			loadedCount ++;
 
-			if( ! onFinishedCalled && loadedCount >= targetLoadCount && onFinished) {
+			if ( ! onFinishedCalled && loadedCount >= targetLoadCount && onFinished ) {
 
 				onFinishedCalled = true;
 				onFinished();
+
 			}
 
 		}
 
 		// ---------------------
-        // create ground
-        // ---------------------
+		// create ground
+		// ---------------------
 
-        var groundTexture = new THREE.ImageUtils.loadTexture( 'images/grass1.jpg' );
-        groundTexture.wrapS = THREE.RepeatWrapping; 
-        groundTexture.wrapT = THREE.RepeatWrapping; 
-        groundTexture.repeat.set( 10, 10 );
+		var groundTexture = new THREE.ImageUtils.loadTexture( 'textures/campfire/grass1.jpg' );
+		groundTexture.wrapS = THREE.RepeatWrapping;
+		groundTexture.wrapT = THREE.RepeatWrapping;
+		groundTexture.repeat.set( 10, 10 );
 
-        var groundMaterial = new THREE.MeshLambertMaterial( {
+		var groundMaterial = new THREE.MeshLambertMaterial( {
 
-                color: 0xffffff,
-                shading: THREE.SmoothShading,
-                map: groundTexture,
-                vertexColors: THREE.NoColors,
-                side: THREE.BackSide
+			color: 0xffffff,
+			shading: THREE.SmoothShading,
+			map: groundTexture,
+			vertexColors: THREE.NoColors,
+			side: THREE.BackSide
 
-        } );
+		} );
 
-        var groundGeometry = new THREE.PlaneGeometry( 1000, 1000, 30, 30 );
-        var groundMesh = new THREE.Mesh( groundGeometry, groundMaterial );
-        groundMesh.position.y = 0;
-        groundMesh.rotation.x = Math.PI / 2.0;
-        groundMesh.receiveShadow = true;
-        scene.add(groundMesh);
+		var groundGeometry = new THREE.PlaneGeometry( 1000, 1000, 30, 30 );
+		var groundMesh = new THREE.Mesh( groundGeometry, groundMaterial );
+		groundMesh.position.y = 0;
+		groundMesh.rotation.x = Math.PI / 2.0;
+		groundMesh.receiveShadow = true;
+		scene.add( groundMesh );
 
 		// ---------------------
 		// load campfire
 		// ---------------------
 		var campFireMaterial = new THREE.MeshLambertMaterial( {
 
-                color: 0xffffff,
-                shading: THREE.SmoothShading,
-                vertexColors: THREE.NoColors,
-                side: THREE.FrontSide
+			color: 0xffffff,
+			shading: THREE.SmoothShading,
+			vertexColors: THREE.NoColors,
+			side: THREE.FrontSide
 
-        } );
+		} );
 
-		ParticleSystemUtil.loadObj( 'models/CampFire01.obj', 'models/Stuff01.png', campFireMaterial,
+		ParticleSystemUtil.loadObj( 'models/campfire/campfire.obj', 'models/campfire/campfire_texture.png', campFireMaterial,
 
-			function( mesh ) { mesh.castShadow = true; mesh.receiveShadow = false; }, 
-			function( object ) { 
+			function( mesh ) {
 
-				object.position.set( 0, 0, 0 ); 
-				object.scale.set( 7, 7, 7 ); 
-				scene.add( object ); 
+				mesh.castShadow = true; 
+				mesh.receiveShadow = false;
 
-				incrementAndCheckLoadComplete();
-			}
+			},
+				function( object ) {
 
-		);
+					object.position.set( 0, 0, 0 );
+					object.scale.set( 7, 7, 7 );
+					scene.add( object );
+
+					incrementAndCheckLoadComplete();
+
+				}
+
+			);
 
 		// ---------------------
 		// load rocks
@@ -569,41 +612,46 @@
 
 		var rockMaterial = new THREE.MeshLambertMaterial( {
 
-                color: 0xffffff,
-                shading: THREE.SmoothShading,
-                vertexColors: THREE.NoColors,
-                side: THREE.FrontSide
+			color: 0xffffff,
+			shading: THREE.SmoothShading,
+			vertexColors: THREE.NoColors,
+			side: THREE.FrontSide
 
-        } );
+		} );
 
-		ParticleSystemUtil.loadObj( 'models/rock01.obj', 'models/Rock01.png', rockMaterial,
+		ParticleSystemUtil.loadObj( 'models/campfire/brownrock.obj', 'models/campfire/brownrock.png', rockMaterial,
 
-			function( mesh ) { mesh.castShadow = true;	mesh.receiveShadow = true; }, 
-			function( object ) { 
+			function( mesh ) {
 
-				object.position.set( -70, 0, 0 ); 
-				object.scale.set( .55, .55, .55 ); 
-				scene.add( object ); 
+				mesh.castShadow = true;	
+				mesh.receiveShadow = true;
 
-				var rockObject2 = object.clone();
-				rockObject2.rotation.z = -Math.PI / 4; 
-				rockObject2.rotation.x = Math.PI /2; 
-				rockObject2.position.set( -55, -1, 25 ); 
-				rockObject2.scale.set( .35, .35, .35 ); 
-				scene.add( rockObject2 ); 
+			},
+				function( object ) {
 
-				var rockObject3 = object.clone();
-				rockObject3.rotation.z = Math.PI / 4; 
-				rockObject3.rotation.x = Math.PI /2; 
-				rockObject3.position.set( 45, 10, 45 ); 
-				rockObject3.scale.set( .65, .65, .85 ); 
-				scene.add( rockObject3 ); 
-				
-				incrementAndCheckLoadComplete();
+					object.position.set( - 70, 0, 0 );
+					object.scale.set( .55, .55, .55 );
+					scene.add( object );
 
-			} 
+					var rockObject2 = object.clone();
+					rockObject2.rotation.z = - Math.PI / 4;
+					rockObject2.rotation.x = Math.PI / 2;
+					rockObject2.position.set( - 55, - 1, 25 );
+					rockObject2.scale.set( .35, .35, .35 );
+					scene.add( rockObject2 );
 
-		);
+					var rockObject3 = object.clone();
+					rockObject3.rotation.z = Math.PI / 4;
+					rockObject3.rotation.x = Math.PI / 2;
+					rockObject3.position.set( 45, 10, 45 );
+					rockObject3.scale.set( .65, .65, .85 );
+					scene.add( rockObject3 );
+
+					incrementAndCheckLoadComplete();
+
+				}
+
+			);
 
 		// ---------------------
 		// load trees
@@ -611,39 +659,44 @@
 
 		var treeMaterial = new THREE.MeshLambertMaterial( {
 
-                color: 0xffffff,
-                shading: THREE.SmoothShading,
-                vertexColors: THREE.NoColors,
-                side: THREE.FrontSide
+			color: 0xffffff,
+			shading: THREE.SmoothShading,
+			vertexColors: THREE.NoColors,
+			side: THREE.FrontSide
 
-        } );
+		} );
 
-		ParticleSystemUtil.loadObj( 'models/treeplaindouble.obj', 'models/tree-noel1.jpg', treeMaterial,
+		ParticleSystemUtil.loadObj( 'models/campfire/pinetree_doubleface.obj', 'models/campfire/pinetree.jpg', treeMaterial,
 
-			function( mesh ) { mesh.castShadow = true;	mesh.receiveShadow = true; }, 
-			function( object ) { 
+			function( mesh ) {
 
-				object.rotation.z = Math.PI / 64; 
-				object.rotation.x = Math.PI / 64; 
-				object.position.set( -20, -1, -80 ); 
-				object.scale.set( 1.155, 1.155, 1.155 ); 
-				scene.add( object ); 
+				mesh.castShadow = true;	
+				mesh.receiveShadow = true;
 
-				var treeObject2 = object.clone();
-				treeObject2.rotation.z = - Math.PI / 16; 
-				treeObject2.rotation.x = Math.PI / 32; 
-				treeObject2.position.set( 15, -1, -80 ); 
-				treeObject2.scale.set( .855, .855, .855 ); 
-				scene.add( treeObject2 ); 
+			},
+				function( object ) {
 
-				incrementAndCheckLoadComplete();
+					object.rotation.z = Math.PI / 64;
+					object.rotation.x = Math.PI / 64;
+					object.position.set( - 20, - 1, - 80 );
+					object.scale.set( 1.155, 1.155, 1.155 );
+					scene.add( object );
 
-			} 
+					var treeObject2 = object.clone();
+					treeObject2.rotation.z = - Math.PI / 16;
+					treeObject2.rotation.x = Math.PI / 32;
+					treeObject2.position.set( 15, - 1, - 80 );
+					treeObject2.scale.set( .855, .855, .855 );
+					scene.add( treeObject2 );
 
-		);
+					incrementAndCheckLoadComplete();
+
+				}
+
+			);
 
 		particleSystemsParent = new THREE.Object3D();
-		particleSystemsParent.position.set(0,0,0);
+		particleSystemsParent.position.set( 0, 0, 0 );
 		particleSystemsParent.matrixAutoUpdate = true;
 		scene.add( particleSystemsParent );
 
@@ -654,9 +707,9 @@
 		scene = new THREE.Scene();
 
 		camera = new THREE.PerspectiveCamera( 45, 1.0, 2, 2000 );
-		scene.add(camera);
+		scene.add( camera );
 		resetCamera();
-		
+
 	}
 
 	function initStats() {
@@ -671,18 +724,19 @@
 
 	function initControls() {
 
-        controls = new THREE.OrbitControls( camera, renderer.domElement );
-        controls.target.set( 0, 0, 0 );
-        controls.update();
+		controls = new THREE.OrbitControls( camera, renderer.domElement );
+		controls.target.set( 0, 0, 0 );
+		controls.update();
 
-    }
+	    }
 
-	function onWindowResize() { 
+	function onWindowResize() {
 
+		getScreenDimensions();
 		renderer.setSize( screenWidth, screenHeight );
-		resetCamera();		
+		resetCamera();
 
-	}	
+	}
 
 	var flickerPointLight = ( function() {
 
@@ -690,11 +744,11 @@
 
 		return function flickerPointLight() {
 
-			var adjuster = (Math.random() - 0.5);
+			var adjuster = ( Math.random() - 0.5 );
 
-			if( lastAdjuster ) {
+			if ( lastAdjuster ) {
 
-				diff = (adjuster - lastAdjuster) *.2;
+				diff = ( adjuster - lastAdjuster ) * .2;
 				adjuster = lastAdjuster + diff;
 
 			}
@@ -707,32 +761,34 @@
 			pointLight.decay = adjuster * 5 + 3;
 
 			lastAdjuster = adjuster;
+
 		}
 
-	})();
+	} )();
 
 	function updateSmokeType() {
 
 		particleSystems[ ParticleSystemIDs.Smoke1 ].deactivate();
 		particleSystems[ ParticleSystemIDs.Smoke2 ].deactivate();
 
-		if( smokeActive ) {			
+		if ( smokeActive ) {
 
 			particleSystems[ smokeType ].activate();
 
 		}
+
 	}
 
 	function toggleParticleSystem( id ) {
 
-		if( particleSystems[ id ]) {
+		if ( particleSystems[ id ] ) {
 
-			if( particleSystems[ id ].isActive ) {
+			if ( particleSystems[ id ].isActive ) {
 
 				particleSystems[ id ].deactivate();
 
 			} else {
-				
+
 				particleSystems[ id ].activate();
 
 			}
@@ -743,33 +799,34 @@
 
 	function startParticleSystemEnvironment( id ) {
 
-		resetCamera();	
+		resetCamera();
 
 		Object.keys( particleSystems ).forEach( function( key ) {
 
 			var system = particleSystems[ key ];
 			system.deactivate();
 
-		});
+		} );
 
 		currentEnvironmentID = id;
-		if( id == ParticleEnvironmentIDs.Campfire ) {
-			
+		if ( id == ParticleEnvironmentIDs.Campfire ) {
+
 			smokeActive = true;
-			particleSystems[ ParticleSystemIDs.Flame ].activate();  
-			particleSystems[ ParticleSystemIDs.FlameEmbers ].activate();  
+			particleSystems[ ParticleSystemIDs.Flame ].activate();
+			particleSystems[ ParticleSystemIDs.FlameEmbers ].activate();
 			updateSmokeType();
 			pointLight.distance = 300;
 			pointLight.intensity = 6;
-			pointLight.color.setRGB( 1, .8, .4);
+			pointLight.color.setRGB( 1, .8, .4 );
 			pointLight.decay = 2;
-			pointLight.position.set(0,40,0);
+			pointLight.position.set( 0, 40, 0 );
 
 			ambientLight.color.setRGB( .08, .08, .08 );
 
 		} else {
 
 			return;
+
 		}
 
 	}
@@ -786,8 +843,8 @@
 		getScreenDimensions();
 		camera.aspect = screenWidth / screenHeight;
 		camera.updateProjectionMatrix();
-		camera.position.set(0,200,400);
-		camera.lookAt(scene.position);	
+		camera.position.set( 0, 200, 400 );
+		camera.lookAt( scene.position );
 
 	}
 
@@ -804,7 +861,7 @@
 
 			}
 
-		});
+		} );
 
 		if ( currentEnvironmentID == ParticleEnvironmentIDs.Campfire ) {
 
@@ -816,22 +873,22 @@
 
 	function animate() {
 
-	    requestAnimationFrame( animate );
-	    update();
-		render();	
+		    requestAnimationFrame( animate );
+		    update();
+		render();
 
 	}
 
 	function update() {
 
-		var time = performance.now() * 0.001;		
+		var time = performance.now() * 0.001;
 
 		//particleSystemsParent.position.x = Math.sin( time ) * 49;
 		//particleSystemsParent.position.z = Math.sin( time * 1.2 ) * 49;
 
 		controls.update();
-		stats.update();	
-		updateParticleSystems();	
+		stats.update();
+		updateParticleSystems();
 
 	}
 

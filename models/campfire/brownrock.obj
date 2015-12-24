@@ -1,7 +1,7 @@
 # Blender v2.76 (sub 0) OBJ File: ''
 # www.blender.org
-mtllib rock01.mtl
-o Stone_01_Untitled
+mtllib brownrock.mtl
+o brownrock
 v -20.837294 -9.775211 23.525219
 v 20.801138 34.443077 -3.906281
 v -6.218512 -35.404491 -23.927267

@@ -1,5 +1,5 @@
 /**
-* @author Mark Kellogg
+* @author Mark Kellogg - http://www.github.com/mkkellogg
 */
 
 //=======================================
@@ -11,7 +11,7 @@ THREE.Particles = THREE.Particles || {};
 THREE.Particles.ParticleSystem = function() {
 
 	THREE.Object3D.call( this );
-	
+
 	this.zSort = false;
 	this.simulateInLocalSpace = true;
 	this.matrixAutoUpdate = true;
@@ -26,9 +26,9 @@ THREE.Particles.ParticleSystem = function() {
 	this.alphaInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
 	this.sizeInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
 	this.atlasUpdater = THREE.Particles.ParticleSystem.DefaultUpdater;
-	this.colorUpdater = THREE.Particles.ParticleSystem.DefaultUpdater;	
-	this.alphaUpdater = THREE.Particles.ParticleSystem.DefaultUpdater;	
-	this.sizeUpdater = THREE.Particles.ParticleSystem.DefaultUpdater;	
+	this.colorUpdater = THREE.Particles.ParticleSystem.DefaultUpdater;
+	this.alphaUpdater = THREE.Particles.ParticleSystem.DefaultUpdater;
+	this.sizeUpdater = THREE.Particles.ParticleSystem.DefaultUpdater;
 
 	// Particle position and position modifiers (velocity and acceleration)
 	this.positionUpdater = THREE.Particles.ParticleSystem.DefaultPositionUpdater;
@@ -37,14 +37,14 @@ THREE.Particles.ParticleSystem = function() {
 	this.positionInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
 	this.velocityInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
 	this.accelerationInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
-	
+
 	// Particle rotation and rotation modifiers (rotational speed and rotational acceleration)
 	this.rotationUpdater = THREE.Particles.ParticleSystem.DefaultRotationUpdater;
 	this.rotationalSpeedUpdater = THREE.Particles.ParticleSystem.DefaultRotationalSpeedUpdater;
 	this.rotationalAccelerationUpdater = THREE.Particles.ParticleSystem.DefaultUpdater;
 	this.rotationInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
 	this.rotationalSpeedInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
-	this.rotationalAccelerationInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;	
+	this.rotationalAccelerationInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
 
 	this.particleReleaseRate = 100;
 	this.particleLifeSpan = 1.0;
@@ -52,22 +52,23 @@ THREE.Particles.ParticleSystem = function() {
 	this.calculateAverageParticleLifeSpan();
 
 	this.calculateMaxParticleCount();
-	this.liveParticleCount = 0;	
+	this.liveParticleCount = 0;
 	this.deadParticleCount = 0;
-	this.liveParticleArray = [];	
-	this.deadParticleArray = [];	
+	this.liveParticleArray = [];
+	this.deadParticleArray = [];
 
 	this._tempParticleArray = [];
 
-	this.timeSinceLastEmit = 0.0;	
+	this.timeSinceLastEmit = 0.0;
 	this.emitting = true;
-	this.age = 0.0;	
+	this.age = 0.0;
 	this.lifespan = 0;
 
-	// temporary storage 
+	// temporary storage
 	this._tempVector3 = new THREE.Vector3();
 	this._tempQuaternion = new THREE.Quaternion();
 	this._tempMatrix4 = new THREE.Matrix4();
+
 }
 
 THREE.Particles.ParticleSystem.prototype = Object.create( THREE.Object3D.prototype );
@@ -90,15 +91,15 @@ THREE.Particles.ParticleSystem.Shader.VertexVars = [
 	"uniform vec3 cameraaxisy;",
 	"uniform vec3 cameraaxisz;",
 
-].join("\n");
+].join( "\n" );
 
 THREE.Particles.ParticleSystem.Shader.FragmentVars = [
 
 	"varying vec2 vUV;",
-	"varying vec4 vColor;", 
-	"uniform sampler2D texture;",	
+	"varying vec4 vColor;",
+	"uniform sampler2D texture;",
 
-].join("\n");
+].join( "\n" );
 
 THREE.Particles.ParticleSystem.Shader.ParticleVertexQuadPositionFunction = [
 
@@ -128,7 +129,7 @@ THREE.Particles.ParticleSystem.Shader.ParticleVertexQuadPositionFunction = [
 
 	"}",
 
-].join("\n");
+].join( "\n" );
 
 THREE.Particles.ParticleSystem.Shader.VertexShader = [
 
@@ -136,28 +137,28 @@ THREE.Particles.ParticleSystem.Shader.VertexShader = [
 	THREE.Particles.ParticleSystem.Shader.ParticleVertexQuadPositionFunction,
 
 	"void main() { ",
-	
-		"vColor = customColor;",	
+
+		"vColor = customColor;",
 		"vUV = uv;",
-		"vec4 quadPos = getQuadPosition();",  
+		"vec4 quadPos = getQuadPosition();",
 		"gl_Position = projectionMatrix * viewMatrix * quadPos;",
 
 	"}"
 
-].join("\n");
+].join( "\n" );
 
 THREE.Particles.ParticleSystem.Shader.FragmentShader = [
 
 	THREE.Particles.ParticleSystem.Shader.FragmentVars,
 
-	"void main() { ", 
+	"void main() { ",
 
 	    "vec4 textureColor = texture2D( texture,  vUV );",
-		"gl_FragColor = vColor * textureColor;", 
+		"gl_FragColor = vColor * textureColor;",
 
 	"}"
 
-].join("\n");
+].join( "\n" );
 
 THREE.Particles.ParticleSystem.createMaterial = function( vertexShader, fragmentShader, customUniforms ) {
 
@@ -171,20 +172,20 @@ THREE.Particles.ParticleSystem.createMaterial = function( vertexShader, fragment
 	vertexShader = vertexShader || THREE.Particles.ParticleSystem.Shader.VertexShader;
 	fragmentShader = fragmentShader || THREE.Particles.ParticleSystem.Shader.FragmentShader;
 
-	return new THREE.ShaderMaterial( 
+	return new THREE.ShaderMaterial(
 	{
 		uniforms: customUniforms,
-		vertexShader:  vertexShader,
+		vertexShader: vertexShader,
 		fragmentShader: fragmentShader,
 
-		transparent: true,  
-		alphaTest: 0.5, 
+		transparent: true,
+		alphaTest: 0.5,
 
-		blending: THREE.NormalBlending, 
+		blending: THREE.NormalBlending,
 
 		depthTest: true,
 		depthWrite: false
-	});
+	} );
 
 }
 
@@ -192,11 +193,11 @@ THREE.Particles.ParticleSystem.createMaterial = function( vertexShader, fragment
 // Particle system functions
 //=======================================
 
-THREE.Particles.ParticleSystem.prototype.calculateAverageParticleLifeSpan = function () {
+THREE.Particles.ParticleSystem.prototype.calculateAverageParticleLifeSpan = function() {
 
 	var total = 0.0;
 
-	for (var i =0; i < 100; i ++ ) {
+	for ( var i = 0; i < 100; i ++ ) {
 
 		total += this.particleLifeSpan;
 
@@ -208,16 +209,16 @@ THREE.Particles.ParticleSystem.prototype.calculateAverageParticleLifeSpan = func
 
 }
 
-THREE.Particles.ParticleSystem.prototype.calculateMaxParticleCount = function () {
+THREE.Particles.ParticleSystem.prototype.calculateMaxParticleCount = function() {
 
 	if ( this.releaseAtOnce ) {
 
-		this.maxParticleCount = this.releaseAtOnceCount;		
+		this.maxParticleCount = this.releaseAtOnceCount;
 
 	} else {
 
-		var minLifeSpan =  this.particleLifeSpan;
-		if ( this.lifespan != 0 &&  this.lifespan  < minLifeSpan) minLifeSpan = this.lifespan;		
+		var minLifeSpan = this.particleLifeSpan;
+		if ( this.lifespan != 0 && this.lifespan < minLifeSpan ) minLifeSpan = this.lifespan;
 		this.maxParticleCount = Math.max( this.particleReleaseRate * minLifeSpan * 2, 1.0 );
 
 	}
@@ -226,7 +227,7 @@ THREE.Particles.ParticleSystem.prototype.calculateMaxParticleCount = function ()
 
 }
 
-THREE.Particles.ParticleSystem.prototype.initializeGeometry = function () {
+THREE.Particles.ParticleSystem.prototype.initializeGeometry = function() {
 
 	this.particleGeometry = new THREE.BufferGeometry();
 	var particleColor = new Float32Array( this.vertexCount * 4 );
@@ -260,16 +261,16 @@ THREE.Particles.ParticleSystem.prototype.initializeGeometry = function () {
 	var indexAttribute = new THREE.BufferAttribute( index, 1 );
 	indexAttribute.setDynamic( true );
 	this.particleGeometry.addAttribute( 'customIndex', indexAttribute );
-	
+
 }
 
-THREE.Particles.ParticleSystem.prototype.initializeMaterial = function ( material ) {
+THREE.Particles.ParticleSystem.prototype.initializeMaterial = function( material ) {
 
 	this.particleMaterial = material;
 
 }
 
-THREE.Particles.ParticleSystem.prototype.initializeMesh = function () {
+THREE.Particles.ParticleSystem.prototype.initializeMesh = function() {
 
 	this.destroyMesh();
 
@@ -281,7 +282,7 @@ THREE.Particles.ParticleSystem.prototype.initializeMesh = function () {
 
 THREE.Particles.ParticleSystem.prototype.destroyMesh = function() {
 
-	if( this.particleMesh ) {
+	if ( this.particleMesh ) {
 
 		scene.remove( this.particleMesh );
 		this.particleMesh = undefined;
@@ -290,23 +291,25 @@ THREE.Particles.ParticleSystem.prototype.destroyMesh = function() {
 
 }
 
-THREE.Particles.ParticleSystem.prototype.initializeParticleArray = function () {
+THREE.Particles.ParticleSystem.prototype.initializeParticleArray = function() {
 
-	for ( var i = 0; i < this.maxParticleCount; i++ ) {
+	for ( var i = 0; i < this.maxParticleCount; i ++ ) {
 
 		var particle = this.createParticle();
 		this.initializeParticle( particle );
-		this.deadParticleArray[i] = particle;
+		this.deadParticleArray[ i ] = particle;
+
 	}
 
 	this.liveParticleCount = 0;
 	this.deadParticleCount = this.maxParticleCount;
 
 	this.liveParticleArray.length = this.liveParticleCount;
-	this.deadParticleArray.length = this.deadParticleCount;			
+	this.deadParticleArray.length = this.deadParticleCount;
+
 }
 
-THREE.Particles.ParticleSystem.prototype.mergeParameters = function ( parameters ) {
+THREE.Particles.ParticleSystem.prototype.mergeParameters = function( parameters ) {
 
 	for ( var key in parameters ) {
 
@@ -318,18 +321,20 @@ THREE.Particles.ParticleSystem.prototype.mergeParameters = function ( parameters
 
 THREE.Particles.ParticleSystem.prototype.bindInitializer = function( name, modifier ) {
 
-	if( name ) {
+	if ( name ) {
 
-		this[name+"Initializer"] = modifier;
+		this[ name + "Initializer" ] = modifier;
+
 	}
 
 }
 
 THREE.Particles.ParticleSystem.prototype.bindUpdater = function( name, modifier ) {
 
-	if( name ) {
+	if ( name ) {
 
-		this[name+"Updater"] = modifier;
+		this[ name + "Updater" ] = modifier;
+
 	}
 
 }
@@ -342,39 +347,40 @@ THREE.Particles.ParticleSystem.prototype.bindModifier = function( name, modifier
 }
 
 THREE.Particles.ParticleSystem.prototype.initialize = function( camera, parameters ) {
-	
+
 	this.camera = camera;
 
 	this.sizeFrameSet = undefined;
 	this.colorFrameSet = undefined;
-	this.alphaFrameSet = undefined;	
-	
+	this.alphaFrameSet = undefined;
+
 	if ( parameters ) {
 
 		this.mergeParameters ( parameters );
 
 	}
 
-	if( ! this.sizeFrameSet ) this.sizeFrameSet = new THREE.Particles.FrameSet();
-	if( ! this.colorFrameSet ) this.colorFrameSet = new THREE.Particles.FrameSet();
-	if( ! this.alphaFrameSet ) this.alphaFrameSet = new THREE.Particles.FrameSet();
+	if ( ! this.sizeFrameSet ) this.sizeFrameSet = new THREE.Particles.FrameSet();
+	if ( ! this.colorFrameSet ) this.colorFrameSet = new THREE.Particles.FrameSet();
+	if ( ! this.alphaFrameSet ) this.alphaFrameSet = new THREE.Particles.FrameSet();
 
 	this.liveParticleArray = [];
 	this.timeSinceLastEmit = 0.0;
 	this.age = 0.0;
 	this.emitting = true;
 
-	this.calculateAverageParticleLifeSpan();	
+	this.calculateAverageParticleLifeSpan();
 	this.calculateMaxParticleCount();
 	this.initializeParticleArray();
 
 	this.initializeGeometry();
-	this.initializeMaterial( parameters.material );		
+	this.initializeMaterial( parameters.material );
 	this.updateAttributesWithParticleData();
 	this.initializeMesh();
+
 }
 
-THREE.Particles.ParticleSystem.prototype.getCameraWorldAxes = function () {
+THREE.Particles.ParticleSystem.prototype.getCameraWorldAxes = function() {
 
 	var quaternion = new THREE.Quaternion();
 
@@ -389,7 +395,7 @@ THREE.Particles.ParticleSystem.prototype.getCameraWorldAxes = function () {
 
 }();
 
-THREE.Particles.ParticleSystem.prototype.generateXYAlignedQuadForParticle = function () {
+THREE.Particles.ParticleSystem.prototype.generateXYAlignedQuadForParticle = function() {
 
 	var vectorX = new THREE.Vector3();
 	var vectorY = new THREE.Vector3();
@@ -410,7 +416,7 @@ THREE.Particles.ParticleSystem.prototype.generateXYAlignedQuadForParticle = func
 
 		vectorX.multiplyScalar( particle.size.x );
 		vectorY.multiplyScalar( particle.size.y );
-		
+
 		pos1.subVectors( position, vectorX ).addVectors( pos1, vectorY );
 		pos2.subVectors( position, vectorX ).subVectors( pos2, vectorY );
 		pos3.addVectors( position, vectorX ).subVectors( pos3, vectorY );
@@ -419,8 +425,8 @@ THREE.Particles.ParticleSystem.prototype.generateXYAlignedQuadForParticle = func
 	}
 
 }();
-	
-THREE.Particles.ParticleSystem.prototype.updateAttributesWithParticleData = function () {
+
+THREE.Particles.ParticleSystem.prototype.updateAttributesWithParticleData = function() {
 
 	var vectorY = new THREE.Vector3();
 	var vectorX = new THREE.Vector3();
@@ -440,7 +446,7 @@ THREE.Particles.ParticleSystem.prototype.updateAttributesWithParticleData = func
 		this.particleMaterial.uniforms.cameraaxisz.value.copy( vectorZ );
 		this.particleMaterial.uniforms.texture.value = this.particleAtlas.getTexture();
 
-		for (var p = 0; p < this.liveParticleCount; p++) {
+		for ( var p = 0; p < this.liveParticleCount; p ++ ) {
 
 			var particle = this.liveParticleArray[ p ];
 			var position = particle.position;
@@ -468,17 +474,18 @@ THREE.Particles.ParticleSystem.prototype.updateAttributesWithParticleData = func
 			var alpha = particle.alpha.x;
 			color.a = alpha;
 			var size = particle.size;
-			var rotation = particle.rotation.x * THREE.Particles.Constants.DegreesToRadians 
+			var rotation = particle.rotation.x * THREE.Particles.Constants.DegreesToRadians
 
 			var attributeColor = this.particleGeometry.getAttribute( 'customColor' );
 			var attributeSize = this.particleGeometry.getAttribute( 'size' );
 			var attributeRotation = this.particleGeometry.getAttribute( 'rotation' );
-			for(var i =0; i < THREE.Particles.Constants.VerticesPerParticle; i++ ) {
+			for ( var i = 0; i < THREE.Particles.Constants.VerticesPerParticle; i ++ ) {
 
 				var index = baseIndex + i;
 				this.updateAttributeColor( attributeColor, index, color );
 				this.updateAttributeVector2XY( attributeSize, index, size.x, size.y );
 				this.updateAttributeScalar( attributeRotation, index, rotation );
+
 			}
 
 			var attributeIndex = this.particleGeometry.getAttribute( 'customIndex' );
@@ -497,7 +504,7 @@ THREE.Particles.ParticleSystem.prototype.updateAttributesWithParticleData = func
 
 }();
 
-THREE.Particles.ParticleSystem.prototype.updateAttributeVector2XY = function ( attribute, index, x, y ) {
+THREE.Particles.ParticleSystem.prototype.updateAttributeVector2XY = function( attribute, index, x, y ) {
 
 	attribute.array[ index * 2 ] = x;
 	attribute.array[ index * 2 + 1 ] = y;
@@ -505,35 +512,35 @@ THREE.Particles.ParticleSystem.prototype.updateAttributeVector2XY = function ( a
 
 }
 
-THREE.Particles.ParticleSystem.prototype.updateAttributeVector3 = function ( attribute, index, value ) {
+THREE.Particles.ParticleSystem.prototype.updateAttributeVector3 = function( attribute, index, value ) {
 
 	attribute.array[ index * 3 ] = value.x;
 	attribute.array[ index * 3 + 1 ] = value.y;
-	attribute.array[ index * 3 + 2 ] = value.z;	
+	attribute.array[ index * 3 + 2 ] = value.z;
 	attribute.needsUpdate = true;
 
 }
 
-THREE.Particles.ParticleSystem.prototype.updateAttributeColor = function ( attribute, index, value ) {
+THREE.Particles.ParticleSystem.prototype.updateAttributeColor = function( attribute, index, value ) {
 
 	attribute.array[ index * 4 ] = value.r;
 	attribute.array[ index * 4 + 1 ] = value.g;
 	attribute.array[ index * 4 + 2 ] = value.b;
-	attribute.array[ index * 4 + 3 ] = value.a;	
+	attribute.array[ index * 4 + 3 ] = value.a;
 	attribute.needsUpdate = true;
 
 }
 
-THREE.Particles.ParticleSystem.prototype.updateAttributeScalar = function ( attribute, index, value ) {
+THREE.Particles.ParticleSystem.prototype.updateAttributeScalar = function( attribute, index, value ) {
 
-	attribute.array[ index ] = value;	
+	attribute.array[ index ] = value;
 	attribute.needsUpdate = true;
 
 }
 
 THREE.Particles.ParticleSystem.prototype.createParticle = function() {
 
-	var particle = new THREE.Particles.Particle();	
+	var particle = new THREE.Particles.Particle();
 	return particle;
 
 }
@@ -547,11 +554,11 @@ THREE.Particles.ParticleSystem.prototype.initializeParticle = function( particle
 THREE.Particles.ParticleSystem.prototype.resetParticle = function( particle ) {
 
 	particle.age = 0;
-	particle.alive = 0; 
+	particle.alive = 0;
 
 	this.resetParticleDisplayAttributes( particle );
 	this.resetParticlePositionData( particle );
-	this.resetParticleRotationData( particle );	
+	this.resetParticleRotationData( particle );
 
 }
 
@@ -561,7 +568,7 @@ THREE.Particles.ParticleSystem.prototype.resetParticleDisplayAttributes = functi
 	this.sizeInitializer.update( particle, particle.size, 0 );
 	this.colorInitializer.update( particle, particle._tempVector3, 0 );
 	particle.color.setRGB( particle._tempVector3.x, particle._tempVector3.y, particle._tempVector3.z );
-	this.alphaInitializer.update( particle, particle.alpha, 0);
+	this.alphaInitializer.update( particle, particle.alpha, 0 );
 
 }
 
@@ -569,9 +576,9 @@ THREE.Particles.ParticleSystem.prototype.resetParticlePositionData = function( p
 
 	this.positionInitializer.update( particle, particle.position, 0 );
 
-	if( ! this.simulateInLocalSpace ) {
+	if ( ! this.simulateInLocalSpace ) {
 
-		particle._tempVector3.setFromMatrixPosition(  this.matrixWorld  );
+		particle._tempVector3.setFromMatrixPosition( this.matrixWorld );
 		particle.position.addVectors( particle._tempVector3, particle.position );
 
 	}
@@ -586,6 +593,7 @@ THREE.Particles.ParticleSystem.prototype.resetParticleRotationData = function( p
 	this.rotationInitializer.update( particle, particle.rotation );
 	this.rotationalSpeedInitializer.update( particle, particle.rotationalSpeed );
 	this.rotationalAccelerationInitializer.update( particle, particle.rotationalAcceleration );
+
 }
 
 THREE.Particles.ParticleSystem.prototype.advanceParticle = function( particle, deltaTime ) {
@@ -628,22 +636,27 @@ THREE.Particles.ParticleSystem.prototype.advanceParticles = function( deltaTime 
 
 	var deadCount = 0;
 
-	for (var i = 0; i < this.liveParticleCount; i++)
+	for ( var i = 0; i < this.liveParticleCount; i ++ )
 	{
-		var particle = this.liveParticleArray[i];
-		this.advanceParticle(particle, deltaTime );
 
-		if ( particle.age > particle.lifeSpan ) 
+		var particle = this.liveParticleArray[ i ];
+		this.advanceParticle( particle, deltaTime );
+
+		if ( particle.age > particle.lifeSpan )
 		{
+
 			this.killParticle( particle );
-			deadCount++;
-		}	
+			deadCount ++;
+
+		}
+
 	}
 
 	if ( deadCount > 0 ) {
 
 		this.cleanupDeadParticles();
-	}	
+
+	}
 
 }
 
@@ -661,19 +674,19 @@ THREE.Particles.ParticleSystem.prototype.activateParticle = function( particle )
 
 }
 
-THREE.Particles.ParticleSystem.prototype.cleanupDeadParticles = function () {
+THREE.Particles.ParticleSystem.prototype.cleanupDeadParticles = function() {
 
 	var topAlive = this.liveParticleCount - 1;
 	var bottomDead = 0;
 	while ( topAlive > bottomDead ) {
 
-		while( this.liveParticleArray[ topAlive ].alive == 0.0 && topAlive > 0) {
+		while ( this.liveParticleArray[ topAlive ].alive == 0.0 && topAlive > 0 ) {
 
 			topAlive --;
 
 		}
 
-		while( this.liveParticleArray[ bottomDead ].alive == 1.0 && bottomDead < this.liveParticleCount - 1) {
+		while ( this.liveParticleArray[ bottomDead ].alive == 1.0 && bottomDead < this.liveParticleCount - 1 ) {
 
 			bottomDead ++;
 
@@ -684,29 +697,29 @@ THREE.Particles.ParticleSystem.prototype.cleanupDeadParticles = function () {
 			break;
 
 		}
-		
+
 		var swap = this.liveParticleArray[ bottomDead ];
 		this.liveParticleArray[ bottomDead ] = this.liveParticleArray[ topAlive ];
 		this.liveParticleArray[ topAlive ] = swap;
 
 	}
 
-	while ( this.liveParticleCount > 0 && this.liveParticleArray[ this.liveParticleCount - 1].alive == 0.0 ) {
+	while ( this.liveParticleCount > 0 && this.liveParticleArray[ this.liveParticleCount - 1 ].alive == 0.0 ) {
 
-		this.deadParticleArray[ this.deadParticleCount ] = this.liveParticleArray[ this.liveParticleCount - 1];
-		this.deadParticleCount++;	
-		this.liveParticleCount--;
+		this.deadParticleArray[ this.deadParticleCount ] = this.liveParticleArray[ this.liveParticleCount - 1 ];
+		this.deadParticleCount ++;
+		this.liveParticleCount --;
 
 	}
 
 	this.liveParticleArray.length = this.liveParticleCount;
-	this.deadParticleArray.length = this.deadParticleCount;	
+	this.deadParticleArray.length = this.deadParticleCount;
 
 }
 
-THREE.Particles.ParticleSystem.prototype.sortParticleArray = function () {
+THREE.Particles.ParticleSystem.prototype.sortParticleArray = function() {
 
-	function numericalSort ( a, b ) {
+	function numericalSort( a, b ) {
 
 		return a[ 0 ] - b[ 0 ];
 
@@ -723,14 +736,14 @@ THREE.Particles.ParticleSystem.prototype.sortParticleArray = function () {
 			projectedPosition.copy( position );
 			projectedPosition.applyProjection( mvpMatrix );
 
-			if( !_sortParticleArray[ p ] ) {
+			if ( ! _sortParticleArray[ p ] ) {
 
-	 			_sortParticleArray[ p ] = [ 0, 0 ];
+				_sortParticleArray[ p ] = [ 0, 0 ];
 
 			}
 
-			_sortParticleArray[ p ][0] = projectedPosition.z;
-			_sortParticleArray[ p ][1] = p;
+			_sortParticleArray[ p ][ 0 ] = projectedPosition.z;
+			_sortParticleArray[ p ][ 1 ] = p;
 
 		}
 
@@ -740,7 +753,7 @@ THREE.Particles.ParticleSystem.prototype.sortParticleArray = function () {
 		for ( p = 0; p < this.liveParticleCount; p ++ ) {
 
 			var originalIndex = _sortParticleArray[ p ][ 1 ];
-			this._tempParticleArray[ p ] =  this.liveParticleArray[ originalIndex ];
+			this._tempParticleArray[ p ] = this.liveParticleArray[ originalIndex ];
 
 		}
 
@@ -748,7 +761,7 @@ THREE.Particles.ParticleSystem.prototype.sortParticleArray = function () {
 
 		var temp = this.liveParticleArray;
 		this.liveParticleArray = this._tempParticleArray;
-		this._tempParticleArray = temp;	
+		this._tempParticleArray = temp;
 
 	}
 
@@ -756,14 +769,14 @@ THREE.Particles.ParticleSystem.prototype.sortParticleArray = function () {
 
 THREE.Particles.ParticleSystem.prototype.activateParticles = function( count ) {
 
-	for (var i = 0; i < count; i++) {
+	for ( var i = 0; i < count; i ++ ) {
 
 		if ( this.liveParticleCount < this.maxParticleCount && this.deadParticleCount > 0 ) {
 
 			var newParticle = this.deadParticleArray[ this.deadParticleCount - 1 ];
-			this.liveParticleArray[ this.liveParticleCount ] = newParticle;	
-			this.deadParticleCount--;		
-			this.liveParticleCount++;
+			this.liveParticleArray[ this.liveParticleCount ] = newParticle;
+			this.deadParticleCount --;
+			this.liveParticleCount ++;
 
 			this.activateParticle ( newParticle );
 
@@ -777,6 +790,7 @@ THREE.Particles.ParticleSystem.prototype.activateParticles = function( count ) {
 
 	this.liveParticleArray.length = this.liveParticleCount;
 	this.deadParticleArray.length = this.deadParticleCount;
+
 }
 
 THREE.Particles.ParticleSystem.prototype.update = function() {
@@ -785,8 +799,8 @@ THREE.Particles.ParticleSystem.prototype.update = function() {
 
 	return function update( deltaTime ) {
 
-		if( ! this.emitting )return;
-		if( ! this.isActive )return;
+		if ( ! this.emitting )return;
+		if ( ! this.isActive )return;
 
 		this.timeSinceLastEmit += deltaTime;
 
@@ -800,15 +814,15 @@ THREE.Particles.ParticleSystem.prototype.update = function() {
 				this.timeSinceLastEmit = 0.0;
 				this.hasInitialReleaseOccurred = true;
 
-			}		
+			}
 
 		} else {
 
 			var emitUnitTime = 1.0 / this.particleReleaseRate;
-			if( ! this.hasInitialReleaseOccurred || this.timeSinceLastEmit > emitUnitTime ) {
-				  
+			if ( ! this.hasInitialReleaseOccurred || this.timeSinceLastEmit > emitUnitTime ) {
+
 				var releaseCount = Math.max( 1, Math.floor( this.timeSinceLastEmit / emitUnitTime ) );
-				this.activateParticles( releaseCount );	
+				this.activateParticles( releaseCount );
 				this.timeSinceLastEmit = 0.0;
 				this.hasInitialReleaseOccurred = true;
 
@@ -816,7 +830,7 @@ THREE.Particles.ParticleSystem.prototype.update = function() {
 
 		}
 
-		this.advanceParticles(deltaTime);
+		this.advanceParticles( deltaTime );
 
 		if ( this.zSort ) {
 
@@ -827,16 +841,16 @@ THREE.Particles.ParticleSystem.prototype.update = function() {
 
 		}
 
-		this.updateAttributesWithParticleData();	
+		this.updateAttributesWithParticleData();
 
 		this.age += deltaTime;
 		if ( this.lifespan != 0 && this.age > this.lifespan ) {
-			
+
 			 this.emitting = false;
 
-		} 
+		}
 
-		if( this.simulateInLocalSpace ) {
+		if ( this.simulateInLocalSpace ) {
 
 			this.particleMesh.matrix.copy( this.matrixWorld );
 			this.particleMesh.updateMatrixWorld();
@@ -844,28 +858,28 @@ THREE.Particles.ParticleSystem.prototype.update = function() {
 		}
 
 	}
-	
+
 }();
 
 THREE.Particles.ParticleSystem.prototype.deactivate = function() {
 
-	if( this.isActive ) { 
+	if ( this.isActive ) {
 
-    	scene.remove( this.particleMesh );
-    	this.isActive = false;
+		scene.remove( this.particleMesh );
+		this.isActive = false;
 
-    }
+	}
 
 }
 
 THREE.Particles.ParticleSystem.prototype.activate = function() {
 
-    if( ! this.isActive ) { 
+	if ( ! this.isActive ) {
 
-    	scene.add( this.particleMesh );
-    	this.isActive = true;
+		scene.add( this.particleMesh );
+		this.isActive = true;
 
-    }
+	}
 
 }
 
@@ -874,7 +888,7 @@ THREE.Particles.ParticleSystem.DefaultPositionUpdater = {
 	update : function( particle, target, deltaTime ) {
 
 		particle._tempVector3.copy( particle.velocity );
-		particle._tempVector3.multiplyScalar(deltaTime);
+		particle._tempVector3.multiplyScalar( deltaTime );
 		particle.position.add( particle._tempVector3 );
 
 	}
@@ -885,7 +899,7 @@ THREE.Particles.ParticleSystem.DefaultVelocityUpdater = {
 	update : function( particle, target, deltaTime ) {
 
 		particle._tempVector3.copy( particle.acceleration );
-		particle._tempVector3.multiplyScalar(deltaTime);
+		particle._tempVector3.multiplyScalar( deltaTime );
 		particle.velocity.add( particle._tempVector3 );
 
 	}
@@ -913,7 +927,7 @@ THREE.Particles.ParticleSystem.DefaultUpdater = {
 
 	update : function( particle, target, deltaTime ) {
 
-		
+
 	}
 }
 
@@ -922,6 +936,7 @@ THREE.Particles.ParticleSystem.DefaultInitializer = {
 	update : function( particle, target, deltaTime ) {
 
 		target.set( 0, 0, 0, 0 );
+
 	}
 }
 
@@ -929,23 +944,23 @@ THREE.Particles.ParticleSystem.DefaultInitializer = {
 // Particle object
 //=======================================
 
-THREE.Particles.Particle = function () {
+THREE.Particles.Particle = function() {
 
 	this.age = 0;
-	this.alive = 0; 
+	this.alive = 0;
 	this.lifeSpan = 0;
 
 	this.size = new THREE.Vector3();
 	this.color = new THREE.Color();
-	this.alpha = new THREE.Particles.SingularVector( 0 );	
+	this.alpha = new THREE.Particles.SingularVector( 0 );
 	this.atlasIndex = new THREE.Particles.SingularVector( 0 );
 
 	this.position = new THREE.Vector3();
-	this.velocity = new THREE.Vector3(); 
+	this.velocity = new THREE.Vector3();
 	this.acceleration = new THREE.Vector3();
 
 	this.rotation = new THREE.Particles.SingularVector( 0 );
-	this.rotationalSpeed = new THREE.Particles.SingularVector( 0 ); 
+	this.rotationalSpeed = new THREE.Particles.SingularVector( 0 );
 	this.rotationalAcceleration = new THREE.Particles.SingularVector( 0 );
 
 	this._tempVector3 = new THREE.Vector3();
