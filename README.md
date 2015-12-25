@@ -86,7 +86,6 @@ particleSystem.bindModifier( "color", new THREE.Particles.FrameSetModifier(
 // set up a modifier that runs once when the particle is initialized to randomize the initial position
 particleSystem.bindInitializer( 'position', new THREE.Particles.RandomModifier(
 	{
-		isScalar: false,
 		offset: new THREE.Vector3( 0, 0, 0 ),
 		range: new THREE.Vector3( 0, 0, 0 ),
 		rangeEdgeClamp: false,
@@ -96,7 +95,6 @@ particleSystem.bindInitializer( 'position', new THREE.Particles.RandomModifier(
 // set up a modifier that runs once when the particle is initialized to randomize the initial velocity
 particleSystem.bindInitializer( 'velocity', new THREE.Particles.RandomModifier(
 	{
-		isScalar: false,
 		offset: new THREE.Vector3( 0, 25, 0 ),
 		range: new THREE.Vector3( 10, 2, 10 ),
 		rangeEdgeClamp: false,
