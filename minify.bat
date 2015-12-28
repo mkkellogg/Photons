@@ -1,0 +1,1 @@
+java -jar tools/compiler.jar --js js/particles_general/Atlas.js --js js/particles_general/ParticleModifiers.js --js js/particles_general/Particles.js --js js/particles_general/ParticleSystem.js --js js/particles_general/ParticleSystemFrameset.js --js js/particles_general/ParticleSystemUtil.js --js_output_file output/GeneralParticleSystem.min.js

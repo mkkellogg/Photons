@@ -284,7 +284,7 @@ THREE.Particles.ParticleSystem.prototype.destroyMesh = function() {
 
 	if ( this.particleMesh ) {
 
-		scene.remove( this.particleMesh );
+		this.scene.remove( this.particleMesh );
 		this.particleMesh = undefined;
 
 	}
@@ -346,9 +346,10 @@ THREE.Particles.ParticleSystem.prototype.bindModifier = function( name, modifier
 
 }
 
-THREE.Particles.ParticleSystem.prototype.initialize = function( camera, parameters ) {
+THREE.Particles.ParticleSystem.prototype.initialize = function( camera, scene, parameters ) {
 
 	this.camera = camera;
+	this.scene = scene;
 
 	this.sizeFrameSet = undefined;
 	this.colorFrameSet = undefined;
@@ -865,7 +866,7 @@ THREE.Particles.ParticleSystem.prototype.deactivate = function() {
 
 	if ( this.isActive ) {
 
-		scene.remove( this.particleMesh );
+		this.scene.remove( this.particleMesh );
 		this.isActive = false;
 
 	}
@@ -876,7 +877,7 @@ THREE.Particles.ParticleSystem.prototype.activate = function() {
 
 	if ( ! this.isActive ) {
 
-		scene.add( this.particleMesh );
+		this.scene.add( this.particleMesh );
 		this.isActive = true;
 
 	}
