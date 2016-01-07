@@ -1,4 +1,4 @@
-# JavaScript Particle System
+# Photons - JavaScript Particle System
 
 Basic particle system for the Three.js 3D graphics library implemented in JavaScript. Three.js does not currently have an official particle system implementation, so this is meant to be a general purpose extendable particle system for it.
 
