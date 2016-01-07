@@ -33,17 +33,17 @@ The repository includes a demo page (index.html) that demonstrates how to define
 This example sets up a fire simulation particle system using an atlas:
 
 ```javascript
-var _TPSV = THREE.Particles.SingularVector;
+var _TPSV = PHOTONS.SingularVector;
 
 // create a material for the particle system
-var flameMaterial = THREE.Particles.ParticleSystem.createMaterial();
+var flameMaterial = PHOTONS.ParticleSystem.createMaterial();
 flameMaterial.blending = THREE.AdditiveBlending;
 
 // define the particle system's parameters
 var particleSystemParams = {
 
 	material: flameMaterial,
-	particleAtlas : THREE.Atlas.createGridAtlas( THREE.ImageUtils.loadTexture( 'textures/campfire/fireloop3.jpg' ), 0.0, 1.0, 1.0, 0.0, 8.0, 8.0, false, true ),
+	particleAtlas : PHOTONS.Atlas.createGridAtlas( THREE.ImageUtils.loadTexture( 'textures/campfire/fireloop3.jpg' ), 0.0, 1.0, 1.0, 0.0, 8.0, 8.0, false, true ),
 	particleReleaseRate : 3,
 	particleLifeSpan : 3,
 	lifespan : 0
@@ -51,15 +51,15 @@ var particleSystemParams = {
 };
 
 // create and initialize the particle system
-var particleSystem = new THREE.Particles.ParticleSystem();
+var particleSystem = new PHOTONS.ParticleSystem();
 particleSystem.initialize( camera, particleSystemParams );
 
 // set up a modifier that interpolates atlas indices
-particleSystem.bindModifier( "atlas", new THREE.Particles.EvenIntervalIndexModifier ( 64 ) );
+particleSystem.bindModifier( "atlas", new PHOTONS.EvenIntervalIndexModifier ( 64 ) );
 
 // set up a modifier that interpolates particle size over a set of key frames
-particleSystem.bindModifier( "size", new THREE.Particles.FrameSetModifier(
-	new THREE.Particles.FrameSet(
+particleSystem.bindModifier( "size", new PHOTONS.FrameSetModifier(
+	new PHOTONS.FrameSet(
 		[ 0, 3 ],
 		[ new THREE.Vector3( 20, 25 ),
 		new THREE.Vector3( 20, 25 ) ],
@@ -67,16 +67,16 @@ particleSystem.bindModifier( "size", new THREE.Particles.FrameSetModifier(
 ) );
 
 // set up a modifier that interpolates particle opacity over a set of key frames
-particleSystem.bindModifier( "alpha", new THREE.Particles.FrameSetModifier(
-	new THREE.Particles.FrameSet(
+particleSystem.bindModifier( "alpha", new PHOTONS.FrameSetModifier(
+	new PHOTONS.FrameSet(
 		[ 0, 0.2, 1.2, 2.0, 3 ],
 		[ new _TPSV( 0 ), new _TPSV( 0.3 ), new _TPSV( 1 ), new _TPSV( 1 ), new _TPSV( 0 ) ],
 		true )
 ) );
 
 // set up a modifier that interpolates particle color over a set of key frames
-particleSystem.bindModifier( "color", new THREE.Particles.FrameSetModifier(
-	new THREE.Particles.FrameSet(
+particleSystem.bindModifier( "color", new PHOTONS.FrameSetModifier(
+	new PHOTONS.FrameSet(
 		[ 0, 3 ],
 		[ new THREE.Vector3( 1.4, 1.4, 1.4 ),
 		new THREE.Vector3( 1.4, 1.4, 1.4 ) ],
@@ -84,21 +84,21 @@ particleSystem.bindModifier( "color", new THREE.Particles.FrameSetModifier(
 ) );
 
 // set up a modifier that runs once when the particle is initialized to randomize the initial position
-particleSystem.bindInitializer( 'position', new THREE.Particles.RandomModifier(
+particleSystem.bindInitializer( 'position', new PHOTONS.RandomModifier(
 	{
 		offset: new THREE.Vector3( 0, 0, 0 ),
 		range: new THREE.Vector3( 0, 0, 0 ),
 		rangeEdgeClamp: false,
-		rangeType: THREE.Particles.RangeType.Sphere
+		rangeType: PHOTONS.RangeType.Sphere
 	} ) );
 
 // set up a modifier that runs once when the particle is initialized to randomize the initial velocity
-particleSystem.bindInitializer( 'velocity', new THREE.Particles.RandomModifier(
+particleSystem.bindInitializer( 'velocity', new PHOTONS.RandomModifier(
 	{
 		offset: new THREE.Vector3( 0, 25, 0 ),
 		range: new THREE.Vector3( 10, 2, 10 ),
 		rangeEdgeClamp: false,
-		rangeType: THREE.Particles.RangeType.Sphere
+		rangeType: PHOTONS.RangeType.Sphere
 	} ) );
 
 // start the particle system
