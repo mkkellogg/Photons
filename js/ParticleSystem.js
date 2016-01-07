@@ -6,9 +6,9 @@
 // Particle system
 //=======================================
 
-THREE.Particles = THREE.Particles || {};
+var PHOTONS = PHOTONS || {};
 
-THREE.Particles.ParticleSystem = function() {
+PHOTONS.ParticleSystem = function() {
 
 	THREE.Object3D.call( this );
 
@@ -21,30 +21,30 @@ THREE.Particles.ParticleSystem = function() {
 	this.hasInitialReleaseOccurred = false;
 	this.isActive = false;
 
-	this.atlasInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
-	this.colorInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
-	this.alphaInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
-	this.sizeInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
-	this.atlasUpdater = THREE.Particles.ParticleSystem.DefaultUpdater;
-	this.colorUpdater = THREE.Particles.ParticleSystem.DefaultUpdater;
-	this.alphaUpdater = THREE.Particles.ParticleSystem.DefaultUpdater;
-	this.sizeUpdater = THREE.Particles.ParticleSystem.DefaultUpdater;
+	this.atlasInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
+	this.colorInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
+	this.alphaInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
+	this.sizeInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
+	this.atlasUpdater = PHOTONS.ParticleSystem.DefaultUpdater;
+	this.colorUpdater = PHOTONS.ParticleSystem.DefaultUpdater;
+	this.alphaUpdater = PHOTONS.ParticleSystem.DefaultUpdater;
+	this.sizeUpdater = PHOTONS.ParticleSystem.DefaultUpdater;
 
 	// Particle position and position modifiers (velocity and acceleration)
-	this.positionUpdater = THREE.Particles.ParticleSystem.DefaultPositionUpdater;
-	this.velocityUpdater = THREE.Particles.ParticleSystem.DefaultVelocityUpdater;
-	this.accelerationUpdater = THREE.Particles.ParticleSystem.DefaultUpdater;
-	this.positionInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
-	this.velocityInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
-	this.accelerationInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
+	this.positionUpdater = PHOTONS.ParticleSystem.DefaultPositionUpdater;
+	this.velocityUpdater = PHOTONS.ParticleSystem.DefaultVelocityUpdater;
+	this.accelerationUpdater = PHOTONS.ParticleSystem.DefaultUpdater;
+	this.positionInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
+	this.velocityInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
+	this.accelerationInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
 
 	// Particle rotation and rotation modifiers (rotational speed and rotational acceleration)
-	this.rotationUpdater = THREE.Particles.ParticleSystem.DefaultRotationUpdater;
-	this.rotationalSpeedUpdater = THREE.Particles.ParticleSystem.DefaultRotationalSpeedUpdater;
-	this.rotationalAccelerationUpdater = THREE.Particles.ParticleSystem.DefaultUpdater;
-	this.rotationInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
-	this.rotationalSpeedInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
-	this.rotationalAccelerationInitializer = THREE.Particles.ParticleSystem.DefaultInitializer;
+	this.rotationUpdater = PHOTONS.ParticleSystem.DefaultRotationUpdater;
+	this.rotationalSpeedUpdater = PHOTONS.ParticleSystem.DefaultRotationalSpeedUpdater;
+	this.rotationalAccelerationUpdater = PHOTONS.ParticleSystem.DefaultUpdater;
+	this.rotationInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
+	this.rotationalSpeedInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
+	this.rotationalAccelerationInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
 
 	this.particleReleaseRate = 100;
 	this.particleLifeSpan = 1.0;
@@ -71,15 +71,15 @@ THREE.Particles.ParticleSystem = function() {
 
 }
 
-THREE.Particles.ParticleSystem.prototype = Object.create( THREE.Object3D.prototype );
-THREE.Particles.ParticleSystem.prototype.constructor = THREE.Particles.ParticleSystem;
+PHOTONS.ParticleSystem.prototype = Object.create( THREE.Object3D.prototype );
+PHOTONS.ParticleSystem.prototype.constructor = PHOTONS.ParticleSystem;
 
 //=======================================
 // Particle system default shader
 //=======================================
-THREE.Particles.ParticleSystem.Shader = THREE.Particles.ParticleSystem.Shader || {};
+PHOTONS.ParticleSystem.Shader = PHOTONS.ParticleSystem.Shader || {};
 
-THREE.Particles.ParticleSystem.Shader.VertexVars = [
+PHOTONS.ParticleSystem.Shader.VertexVars = [
 
 	"attribute vec4 customColor;",
 	"attribute vec2 size;",
@@ -93,7 +93,7 @@ THREE.Particles.ParticleSystem.Shader.VertexVars = [
 
 ].join( "\n" );
 
-THREE.Particles.ParticleSystem.Shader.FragmentVars = [
+PHOTONS.ParticleSystem.Shader.FragmentVars = [
 
 	"varying vec2 vUV;",
 	"varying vec4 vColor;",
@@ -101,7 +101,7 @@ THREE.Particles.ParticleSystem.Shader.FragmentVars = [
 
 ].join( "\n" );
 
-THREE.Particles.ParticleSystem.Shader.ParticleVertexQuadPositionFunction = [
+PHOTONS.ParticleSystem.Shader.ParticleVertexQuadPositionFunction = [
 
 	"vec4 getQuadPosition() {",
 
@@ -131,10 +131,10 @@ THREE.Particles.ParticleSystem.Shader.ParticleVertexQuadPositionFunction = [
 
 ].join( "\n" );
 
-THREE.Particles.ParticleSystem.Shader.VertexShader = [
+PHOTONS.ParticleSystem.Shader.VertexShader = [
 
-	THREE.Particles.ParticleSystem.Shader.VertexVars,
-	THREE.Particles.ParticleSystem.Shader.ParticleVertexQuadPositionFunction,
+	PHOTONS.ParticleSystem.Shader.VertexVars,
+	PHOTONS.ParticleSystem.Shader.ParticleVertexQuadPositionFunction,
 
 	"void main() { ",
 
@@ -147,9 +147,9 @@ THREE.Particles.ParticleSystem.Shader.VertexShader = [
 
 ].join( "\n" );
 
-THREE.Particles.ParticleSystem.Shader.FragmentShader = [
+PHOTONS.ParticleSystem.Shader.FragmentShader = [
 
-	THREE.Particles.ParticleSystem.Shader.FragmentVars,
+	PHOTONS.ParticleSystem.Shader.FragmentVars,
 
 	"void main() { ",
 
@@ -160,7 +160,7 @@ THREE.Particles.ParticleSystem.Shader.FragmentShader = [
 
 ].join( "\n" );
 
-THREE.Particles.ParticleSystem.createMaterial = function( vertexShader, fragmentShader, customUniforms ) {
+PHOTONS.ParticleSystem.createMaterial = function( vertexShader, fragmentShader, customUniforms ) {
 
 	customUniforms = customUniforms || {};
 
@@ -169,8 +169,8 @@ THREE.Particles.ParticleSystem.createMaterial = function( vertexShader, fragment
 	customUniforms.cameraaxisy = { type: "v3", value: new THREE.Vector3() };
 	customUniforms.cameraaxisz = { type: "v3", value: new THREE.Vector3() };
 
-	vertexShader = vertexShader || THREE.Particles.ParticleSystem.Shader.VertexShader;
-	fragmentShader = fragmentShader || THREE.Particles.ParticleSystem.Shader.FragmentShader;
+	vertexShader = vertexShader || PHOTONS.ParticleSystem.Shader.VertexShader;
+	fragmentShader = fragmentShader || PHOTONS.ParticleSystem.Shader.FragmentShader;
 
 	return new THREE.ShaderMaterial(
 	{
@@ -193,7 +193,7 @@ THREE.Particles.ParticleSystem.createMaterial = function( vertexShader, fragment
 // Particle system functions
 //=======================================
 
-THREE.Particles.ParticleSystem.prototype.calculateAverageParticleLifeSpan = function() {
+PHOTONS.ParticleSystem.prototype.calculateAverageParticleLifeSpan = function() {
 
 	var total = 0.0;
 
@@ -209,7 +209,7 @@ THREE.Particles.ParticleSystem.prototype.calculateAverageParticleLifeSpan = func
 
 }
 
-THREE.Particles.ParticleSystem.prototype.calculateMaxParticleCount = function() {
+PHOTONS.ParticleSystem.prototype.calculateMaxParticleCount = function() {
 
 	if ( this.releaseAtOnce ) {
 
@@ -223,11 +223,11 @@ THREE.Particles.ParticleSystem.prototype.calculateMaxParticleCount = function() 
 
 	}
 
-	this.vertexCount = this.maxParticleCount * THREE.Particles.Constants.VerticesPerParticle;
+	this.vertexCount = this.maxParticleCount * PHOTONS.Constants.VerticesPerParticle;
 
 }
 
-THREE.Particles.ParticleSystem.prototype.initializeGeometry = function() {
+PHOTONS.ParticleSystem.prototype.initializeGeometry = function() {
 
 	this.particleGeometry = new THREE.BufferGeometry();
 	var particleColor = new Float32Array( this.vertexCount * 4 );
@@ -264,13 +264,13 @@ THREE.Particles.ParticleSystem.prototype.initializeGeometry = function() {
 
 }
 
-THREE.Particles.ParticleSystem.prototype.initializeMaterial = function( material ) {
+PHOTONS.ParticleSystem.prototype.initializeMaterial = function( material ) {
 
 	this.particleMaterial = material;
 
 }
 
-THREE.Particles.ParticleSystem.prototype.initializeMesh = function() {
+PHOTONS.ParticleSystem.prototype.initializeMesh = function() {
 
 	this.destroyMesh();
 
@@ -280,7 +280,7 @@ THREE.Particles.ParticleSystem.prototype.initializeMesh = function() {
 
 }
 
-THREE.Particles.ParticleSystem.prototype.destroyMesh = function() {
+PHOTONS.ParticleSystem.prototype.destroyMesh = function() {
 
 	if ( this.particleMesh ) {
 
@@ -291,7 +291,7 @@ THREE.Particles.ParticleSystem.prototype.destroyMesh = function() {
 
 }
 
-THREE.Particles.ParticleSystem.prototype.initializeParticleArray = function() {
+PHOTONS.ParticleSystem.prototype.initializeParticleArray = function() {
 
 	for ( var i = 0; i < this.maxParticleCount; i ++ ) {
 
@@ -309,7 +309,7 @@ THREE.Particles.ParticleSystem.prototype.initializeParticleArray = function() {
 
 }
 
-THREE.Particles.ParticleSystem.prototype.mergeParameters = function( parameters ) {
+PHOTONS.ParticleSystem.prototype.mergeParameters = function( parameters ) {
 
 	for ( var key in parameters ) {
 
@@ -319,7 +319,7 @@ THREE.Particles.ParticleSystem.prototype.mergeParameters = function( parameters 
 
 }
 
-THREE.Particles.ParticleSystem.prototype.bindInitializer = function( name, modifier ) {
+PHOTONS.ParticleSystem.prototype.bindInitializer = function( name, modifier ) {
 
 	if ( name ) {
 
@@ -329,7 +329,7 @@ THREE.Particles.ParticleSystem.prototype.bindInitializer = function( name, modif
 
 }
 
-THREE.Particles.ParticleSystem.prototype.bindUpdater = function( name, modifier ) {
+PHOTONS.ParticleSystem.prototype.bindUpdater = function( name, modifier ) {
 
 	if ( name ) {
 
@@ -339,14 +339,14 @@ THREE.Particles.ParticleSystem.prototype.bindUpdater = function( name, modifier 
 
 }
 
-THREE.Particles.ParticleSystem.prototype.bindModifier = function( name, modifier ) {
+PHOTONS.ParticleSystem.prototype.bindModifier = function( name, modifier ) {
 
 	this.bindInitializer( name, modifier );
 	this.bindUpdater( name, modifier );
 
 }
 
-THREE.Particles.ParticleSystem.prototype.initialize = function( camera, scene, parameters ) {
+PHOTONS.ParticleSystem.prototype.initialize = function( camera, scene, parameters ) {
 
 	this.camera = camera;
 	this.scene = scene;
@@ -361,9 +361,9 @@ THREE.Particles.ParticleSystem.prototype.initialize = function( camera, scene, p
 
 	}
 
-	if ( ! this.sizeFrameSet ) this.sizeFrameSet = new THREE.Particles.FrameSet();
-	if ( ! this.colorFrameSet ) this.colorFrameSet = new THREE.Particles.FrameSet();
-	if ( ! this.alphaFrameSet ) this.alphaFrameSet = new THREE.Particles.FrameSet();
+	if ( ! this.sizeFrameSet ) this.sizeFrameSet = new PHOTONS.FrameSet();
+	if ( ! this.colorFrameSet ) this.colorFrameSet = new PHOTONS.FrameSet();
+	if ( ! this.alphaFrameSet ) this.alphaFrameSet = new PHOTONS.FrameSet();
 
 	this.liveParticleArray = [];
 	this.timeSinceLastEmit = 0.0;
@@ -381,7 +381,7 @@ THREE.Particles.ParticleSystem.prototype.initialize = function( camera, scene, p
 
 }
 
-THREE.Particles.ParticleSystem.prototype.getCameraWorldAxes = function() {
+PHOTONS.ParticleSystem.prototype.getCameraWorldAxes = function() {
 
 	var quaternion = new THREE.Quaternion();
 
@@ -396,7 +396,7 @@ THREE.Particles.ParticleSystem.prototype.getCameraWorldAxes = function() {
 
 }();
 
-THREE.Particles.ParticleSystem.prototype.generateXYAlignedQuadForParticle = function() {
+PHOTONS.ParticleSystem.prototype.generateXYAlignedQuadForParticle = function() {
 
 	var vectorX = new THREE.Vector3();
 	var vectorY = new THREE.Vector3();
@@ -409,8 +409,8 @@ THREE.Particles.ParticleSystem.prototype.generateXYAlignedQuadForParticle = func
 		vectorX.copy( axisX );
 		vectorY.copy( axisY );
 
-		vectorX.multiplyScalar( Math.cos( rotation * THREE.Particles.Constants.DegreesToRadians ) );
-		vectorY.multiplyScalar( Math.sin( rotation * THREE.Particles.Constants.DegreesToRadians ) );
+		vectorX.multiplyScalar( Math.cos( rotation * PHOTONS.Constants.DegreesToRadians ) );
+		vectorY.multiplyScalar( Math.sin( rotation * PHOTONS.Constants.DegreesToRadians ) );
 
 		vectorX.addVectors( vectorX, vectorY );
 		vectorY.crossVectors( axisZ, vectorX );
@@ -427,7 +427,7 @@ THREE.Particles.ParticleSystem.prototype.generateXYAlignedQuadForParticle = func
 
 }();
 
-THREE.Particles.ParticleSystem.prototype.updateAttributesWithParticleData = function() {
+PHOTONS.ParticleSystem.prototype.updateAttributesWithParticleData = function() {
 
 	var vectorY = new THREE.Vector3();
 	var vectorX = new THREE.Vector3();
@@ -452,7 +452,7 @@ THREE.Particles.ParticleSystem.prototype.updateAttributesWithParticleData = func
 			var particle = this.liveParticleArray[ p ];
 			var position = particle.position;
 
-			var baseIndex = p * THREE.Particles.Constants.VerticesPerParticle;
+			var baseIndex = p * PHOTONS.Constants.VerticesPerParticle;
 
 			var attributePosition = this.particleGeometry.getAttribute( 'position' );
 			this.updateAttributeVector3( attributePosition, baseIndex, position );
@@ -475,12 +475,12 @@ THREE.Particles.ParticleSystem.prototype.updateAttributesWithParticleData = func
 			var alpha = particle.alpha.x;
 			color.a = alpha;
 			var size = particle.size;
-			var rotation = particle.rotation.x * THREE.Particles.Constants.DegreesToRadians
+			var rotation = particle.rotation.x * PHOTONS.Constants.DegreesToRadians
 
 			var attributeColor = this.particleGeometry.getAttribute( 'customColor' );
 			var attributeSize = this.particleGeometry.getAttribute( 'size' );
 			var attributeRotation = this.particleGeometry.getAttribute( 'rotation' );
-			for ( var i = 0; i < THREE.Particles.Constants.VerticesPerParticle; i ++ ) {
+			for ( var i = 0; i < PHOTONS.Constants.VerticesPerParticle; i ++ ) {
 
 				var index = baseIndex + i;
 				this.updateAttributeColor( attributeColor, index, color );
@@ -499,13 +499,13 @@ THREE.Particles.ParticleSystem.prototype.updateAttributesWithParticleData = func
 
 		}
 
-		this.particleGeometry.setDrawRange( 0, THREE.Particles.Constants.VerticesPerParticle * this.liveParticleCount );
+		this.particleGeometry.setDrawRange( 0, PHOTONS.Constants.VerticesPerParticle * this.liveParticleCount );
 
 	}
 
 }();
 
-THREE.Particles.ParticleSystem.prototype.updateAttributeVector2XY = function( attribute, index, x, y ) {
+PHOTONS.ParticleSystem.prototype.updateAttributeVector2XY = function( attribute, index, x, y ) {
 
 	attribute.array[ index * 2 ] = x;
 	attribute.array[ index * 2 + 1 ] = y;
@@ -513,7 +513,7 @@ THREE.Particles.ParticleSystem.prototype.updateAttributeVector2XY = function( at
 
 }
 
-THREE.Particles.ParticleSystem.prototype.updateAttributeVector3 = function( attribute, index, value ) {
+PHOTONS.ParticleSystem.prototype.updateAttributeVector3 = function( attribute, index, value ) {
 
 	attribute.array[ index * 3 ] = value.x;
 	attribute.array[ index * 3 + 1 ] = value.y;
@@ -522,7 +522,7 @@ THREE.Particles.ParticleSystem.prototype.updateAttributeVector3 = function( attr
 
 }
 
-THREE.Particles.ParticleSystem.prototype.updateAttributeColor = function( attribute, index, value ) {
+PHOTONS.ParticleSystem.prototype.updateAttributeColor = function( attribute, index, value ) {
 
 	attribute.array[ index * 4 ] = value.r;
 	attribute.array[ index * 4 + 1 ] = value.g;
@@ -532,27 +532,27 @@ THREE.Particles.ParticleSystem.prototype.updateAttributeColor = function( attrib
 
 }
 
-THREE.Particles.ParticleSystem.prototype.updateAttributeScalar = function( attribute, index, value ) {
+PHOTONS.ParticleSystem.prototype.updateAttributeScalar = function( attribute, index, value ) {
 
 	attribute.array[ index ] = value;
 	attribute.needsUpdate = true;
 
 }
 
-THREE.Particles.ParticleSystem.prototype.createParticle = function() {
+PHOTONS.ParticleSystem.prototype.createParticle = function() {
 
-	var particle = new THREE.Particles.Particle();
+	var particle = new PHOTONS.Particle();
 	return particle;
 
 }
 
-THREE.Particles.ParticleSystem.prototype.initializeParticle = function( particle ) {
+PHOTONS.ParticleSystem.prototype.initializeParticle = function( particle ) {
 
 	 this.resetParticle( particle );
 
 }
 
-THREE.Particles.ParticleSystem.prototype.resetParticle = function( particle ) {
+PHOTONS.ParticleSystem.prototype.resetParticle = function( particle ) {
 
 	particle.age = 0;
 	particle.alive = 0;
@@ -563,7 +563,7 @@ THREE.Particles.ParticleSystem.prototype.resetParticle = function( particle ) {
 
 }
 
-THREE.Particles.ParticleSystem.prototype.resetParticleDisplayAttributes = function( particle ) {
+PHOTONS.ParticleSystem.prototype.resetParticleDisplayAttributes = function( particle ) {
 
 	this.atlasInitializer.update( particle, particle.atlasIndex, 0 );
 	this.sizeInitializer.update( particle, particle.size, 0 );
@@ -573,7 +573,7 @@ THREE.Particles.ParticleSystem.prototype.resetParticleDisplayAttributes = functi
 
 }
 
-THREE.Particles.ParticleSystem.prototype.resetParticlePositionData = function( particle ) {
+PHOTONS.ParticleSystem.prototype.resetParticlePositionData = function( particle ) {
 
 	this.positionInitializer.update( particle, particle.position, 0 );
 
@@ -589,7 +589,7 @@ THREE.Particles.ParticleSystem.prototype.resetParticlePositionData = function( p
 
 }
 
-THREE.Particles.ParticleSystem.prototype.resetParticleRotationData = function( particle ) {
+PHOTONS.ParticleSystem.prototype.resetParticleRotationData = function( particle ) {
 
 	this.rotationInitializer.update( particle, particle.rotation );
 	this.rotationalSpeedInitializer.update( particle, particle.rotationalSpeed );
@@ -597,7 +597,7 @@ THREE.Particles.ParticleSystem.prototype.resetParticleRotationData = function( p
 
 }
 
-THREE.Particles.ParticleSystem.prototype.advanceParticle = function( particle, deltaTime ) {
+PHOTONS.ParticleSystem.prototype.advanceParticle = function( particle, deltaTime ) {
 
 	particle.age += deltaTime;
 
@@ -607,7 +607,7 @@ THREE.Particles.ParticleSystem.prototype.advanceParticle = function( particle, d
 
 }
 
-THREE.Particles.ParticleSystem.prototype.advanceParticleDisplayAttributes = function( particle, deltaTime ) {
+PHOTONS.ParticleSystem.prototype.advanceParticleDisplayAttributes = function( particle, deltaTime ) {
 
 	this.atlasUpdater.update( particle, particle.atlasIndex, deltaTime );
 	this.sizeUpdater.update( particle, particle.size, deltaTime );
@@ -617,7 +617,7 @@ THREE.Particles.ParticleSystem.prototype.advanceParticleDisplayAttributes = func
 
 }
 
-THREE.Particles.ParticleSystem.prototype.advanceParticlePositionData = function( particle, deltaTime ) {
+PHOTONS.ParticleSystem.prototype.advanceParticlePositionData = function( particle, deltaTime ) {
 
 	this.positionUpdater.update( particle, particle.position, deltaTime );
 	this.velocityUpdater.update( particle, particle.velocity, deltaTime );
@@ -625,7 +625,7 @@ THREE.Particles.ParticleSystem.prototype.advanceParticlePositionData = function(
 
 }
 
-THREE.Particles.ParticleSystem.prototype.advanceParticleRotationData = function( particle, deltaTime ) {
+PHOTONS.ParticleSystem.prototype.advanceParticleRotationData = function( particle, deltaTime ) {
 
 	this.rotationUpdater.update( particle, particle.rotation, deltaTime );
 	this.rotationalSpeedUpdater.update( particle, particle.rotationalSpeed, deltaTime );
@@ -633,7 +633,7 @@ THREE.Particles.ParticleSystem.prototype.advanceParticleRotationData = function(
 
 }
 
-THREE.Particles.ParticleSystem.prototype.advanceParticles = function( deltaTime ) {
+PHOTONS.ParticleSystem.prototype.advanceParticles = function( deltaTime ) {
 
 	var deadCount = 0;
 
@@ -661,13 +661,13 @@ THREE.Particles.ParticleSystem.prototype.advanceParticles = function( deltaTime 
 
 }
 
-THREE.Particles.ParticleSystem.prototype.killParticle = function( particle ) {
+PHOTONS.ParticleSystem.prototype.killParticle = function( particle ) {
 
 	particle.alive = 0.0;
 
 }
 
-THREE.Particles.ParticleSystem.prototype.activateParticle = function( particle ) {
+PHOTONS.ParticleSystem.prototype.activateParticle = function( particle ) {
 
 	this.resetParticle( particle );
 	particle.lifeSpan = this.particleLifeSpan;
@@ -675,7 +675,7 @@ THREE.Particles.ParticleSystem.prototype.activateParticle = function( particle )
 
 }
 
-THREE.Particles.ParticleSystem.prototype.cleanupDeadParticles = function() {
+PHOTONS.ParticleSystem.prototype.cleanupDeadParticles = function() {
 
 	var topAlive = this.liveParticleCount - 1;
 	var bottomDead = 0;
@@ -718,7 +718,7 @@ THREE.Particles.ParticleSystem.prototype.cleanupDeadParticles = function() {
 
 }
 
-THREE.Particles.ParticleSystem.prototype.sortParticleArray = function() {
+PHOTONS.ParticleSystem.prototype.sortParticleArray = function() {
 
 	function numericalSort( a, b ) {
 
@@ -768,7 +768,7 @@ THREE.Particles.ParticleSystem.prototype.sortParticleArray = function() {
 
 }();
 
-THREE.Particles.ParticleSystem.prototype.activateParticles = function( count ) {
+PHOTONS.ParticleSystem.prototype.activateParticles = function( count ) {
 
 	for ( var i = 0; i < count; i ++ ) {
 
@@ -794,7 +794,7 @@ THREE.Particles.ParticleSystem.prototype.activateParticles = function( count ) {
 
 }
 
-THREE.Particles.ParticleSystem.prototype.update = function() {
+PHOTONS.ParticleSystem.prototype.update = function() {
 
 	var tempMatrix4 = new THREE.Matrix4();
 
@@ -862,7 +862,7 @@ THREE.Particles.ParticleSystem.prototype.update = function() {
 
 }();
 
-THREE.Particles.ParticleSystem.prototype.deactivate = function() {
+PHOTONS.ParticleSystem.prototype.deactivate = function() {
 
 	if ( this.isActive ) {
 
@@ -873,7 +873,7 @@ THREE.Particles.ParticleSystem.prototype.deactivate = function() {
 
 }
 
-THREE.Particles.ParticleSystem.prototype.activate = function() {
+PHOTONS.ParticleSystem.prototype.activate = function() {
 
 	if ( ! this.isActive ) {
 
@@ -884,7 +884,7 @@ THREE.Particles.ParticleSystem.prototype.activate = function() {
 
 }
 
-THREE.Particles.ParticleSystem.DefaultPositionUpdater = {
+PHOTONS.ParticleSystem.DefaultPositionUpdater = {
 
 	update : function( particle, target, deltaTime ) {
 
@@ -895,7 +895,7 @@ THREE.Particles.ParticleSystem.DefaultPositionUpdater = {
 	}
 }
 
-THREE.Particles.ParticleSystem.DefaultVelocityUpdater = {
+PHOTONS.ParticleSystem.DefaultVelocityUpdater = {
 
 	update : function( particle, target, deltaTime ) {
 
@@ -906,7 +906,7 @@ THREE.Particles.ParticleSystem.DefaultVelocityUpdater = {
 	}
 }
 
-THREE.Particles.ParticleSystem.DefaultRotationUpdater = {
+PHOTONS.ParticleSystem.DefaultRotationUpdater = {
 
 	update : function( particle, target, deltaTime ) {
 
@@ -915,7 +915,7 @@ THREE.Particles.ParticleSystem.DefaultRotationUpdater = {
 	}
 }
 
-THREE.Particles.ParticleSystem.DefaultRotationalSpeedUpdater = {
+PHOTONS.ParticleSystem.DefaultRotationalSpeedUpdater = {
 
 	update : function( particle, target, deltaTime ) {
 
@@ -924,7 +924,7 @@ THREE.Particles.ParticleSystem.DefaultRotationalSpeedUpdater = {
 	}
 }
 
-THREE.Particles.ParticleSystem.DefaultUpdater = {
+PHOTONS.ParticleSystem.DefaultUpdater = {
 
 	update : function( particle, target, deltaTime ) {
 
@@ -932,7 +932,7 @@ THREE.Particles.ParticleSystem.DefaultUpdater = {
 	}
 }
 
-THREE.Particles.ParticleSystem.DefaultInitializer = {
+PHOTONS.ParticleSystem.DefaultInitializer = {
 
 	update : function( particle, target, deltaTime ) {
 
@@ -945,7 +945,7 @@ THREE.Particles.ParticleSystem.DefaultInitializer = {
 // Particle object
 //=======================================
 
-THREE.Particles.Particle = function() {
+PHOTONS.Particle = function() {
 
 	this.age = 0;
 	this.alive = 0;
@@ -953,16 +953,16 @@ THREE.Particles.Particle = function() {
 
 	this.size = new THREE.Vector3();
 	this.color = new THREE.Color();
-	this.alpha = new THREE.Particles.SingularVector( 0 );
-	this.atlasIndex = new THREE.Particles.SingularVector( 0 );
+	this.alpha = new PHOTONS.SingularVector( 0 );
+	this.atlasIndex = new PHOTONS.SingularVector( 0 );
 
 	this.position = new THREE.Vector3();
 	this.velocity = new THREE.Vector3();
 	this.acceleration = new THREE.Vector3();
 
-	this.rotation = new THREE.Particles.SingularVector( 0 );
-	this.rotationalSpeed = new THREE.Particles.SingularVector( 0 );
-	this.rotationalAcceleration = new THREE.Particles.SingularVector( 0 );
+	this.rotation = new PHOTONS.SingularVector( 0 );
+	this.rotationalSpeed = new PHOTONS.SingularVector( 0 );
+	this.rotationalAcceleration = new PHOTONS.SingularVector( 0 );
 
 	this._tempVector3 = new THREE.Vector3();
 

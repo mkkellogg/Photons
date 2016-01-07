@@ -2,7 +2,9 @@
 * @author Mark Kellogg - http://www.github.com/mkkellogg
 */
 
-var ParticleSystemUtil = {
+PHOTONS = PHOTONS || {};
+
+PHOTONS.Util = {
 
 	loadingManager: undefined,
 	objLoader: undefined,

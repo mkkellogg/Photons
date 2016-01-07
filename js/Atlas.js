@@ -2,7 +2,9 @@
 * @author Mark Kellogg - http://www.github.com/mkkellogg
 */
 
-THREE.Atlas = function( texture, createFirstFullFrame ) {
+var PHOTONS = PHOTONS || {};
+
+PHOTONS.Atlas = function( texture, createFirstFullFrame ) {
 
 	this.texture = texture;
 	this.imageCount = 0;
@@ -16,7 +18,7 @@ THREE.Atlas = function( texture, createFirstFullFrame ) {
 
 };
 
-THREE.Atlas.ImageDescriptor = function( left, top, right, bottom ) {
+PHOTONS.Atlas.ImageDescriptor = function( left, top, right, bottom ) {
 
 	this.left = left;
 	this.top = top;
@@ -25,28 +27,28 @@ THREE.Atlas.ImageDescriptor = function( left, top, right, bottom ) {
 
 };
 
-THREE.Atlas.prototype.addImageDescriptor = function( left, top, right, bottom ) {
+PHOTONS.Atlas.prototype.addImageDescriptor = function( left, top, right, bottom ) {
 
-	this.imageDescriptors[ this.imageCount ] = new THREE.Atlas.ImageDescriptor( left, top, right, bottom );
+	this.imageDescriptors[ this.imageCount ] = new PHOTONS.Atlas.ImageDescriptor( left, top, right, bottom );
 	this.imageCount ++;
 
 };
 
-THREE.Atlas.prototype.getImageDescriptor = function( index ) {
+PHOTONS.Atlas.prototype.getImageDescriptor = function( index ) {
 
 	return this.imageDescriptors[ index ];
 
 };
 
-THREE.Atlas.prototype.getTexture = function() {
+PHOTONS.Atlas.prototype.getTexture = function() {
 
 	return this.texture;
 
 };
 
-THREE.Atlas.createGridAtlas = function( texture, left, top, right, bottom, xCount, yCount, reverseX, reverseY ) {
+PHOTONS.Atlas.createGridAtlas = function( texture, left, top, right, bottom, xCount, yCount, reverseX, reverseY ) {
 
-	var atlas = new THREE.Atlas( texture );
+	var atlas = new PHOTONS.Atlas( texture );
 
 	var width = right - left;
 	var height = top - bottom;

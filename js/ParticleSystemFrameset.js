@@ -2,16 +2,16 @@
 * @author Mark Kellogg - http://www.github.com/mkkellogg
 */
 
-THREE.Particles = THREE.Particles || {};
+var PHOTONS = PHOTONS || {};
 
-THREE.Particles.FrameSet = function( timeFrames, valueFrames, isScalar ) {
+PHOTONS.FrameSet = function( timeFrames, valueFrames, isScalar ) {
 
 	this.timeFrames = timeFrames || [];
 	this.valueFrames = valueFrames || [];
 
 }
 
-THREE.Particles.FrameSet.prototype.findNextFrameForTimeValue = function( t ) {
+PHOTONS.FrameSet.prototype.findNextFrameForTimeValue = function( t ) {
 
 	var frameIndex = 0;
 
@@ -25,13 +25,13 @@ THREE.Particles.FrameSet.prototype.findNextFrameForTimeValue = function( t ) {
 
 }
 
-THREE.Particles.FrameSet.prototype.calculateFraction = function( a, b, z ) {
+PHOTONS.FrameSet.prototype.calculateFraction = function( a, b, z ) {
 
 	return ( z - a ) / ( b - a );
 
 }
 
-THREE.Particles.FrameSet.prototype.interpolateFrameValues = function( t, target ) {
+PHOTONS.FrameSet.prototype.interpolateFrameValues = function( t, target ) {
 
 	var nextFrameIndex = this.findNextFrameForTimeValue( t );
 	var currentFrameIndex = nextFrameIndex - 1;
