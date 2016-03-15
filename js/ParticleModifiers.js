@@ -103,3 +103,23 @@ PHOTONS.EvenIntervalIndexModifier.prototype.update = function( particle, target 
 
 }
 
+
+//=======================================
+// LoopingTimeIntervalIndex Modifier
+//=======================================
+
+PHOTONS.LoopingTimeIntervalIndexModifier = function( totalSteps, imagesPerSecond) {
+		PHOTONS.Modifier.call( this );
+		this.totalSteps = Math.floor( totalSteps || 1 );
+		this.timePerImage = 1 / imagesPerSecond;
+	}
+
+PHOTONS.LoopingTimeIntervalIndexModifier.prototype = Object.create( PHOTONS.Modifier.prototype );
+
+PHOTONS.LoopingTimeIntervalIndexModifier.prototype.update = function( particle, target ) {
+	
+	var step = Math.floor( particle.age / this.timePerImage ) % this.totalSteps;	
+	target.set( step, step, step );
+
+}
+

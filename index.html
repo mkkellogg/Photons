@@ -285,7 +285,7 @@
 		particleSystem1.bindModifier( 'alpha', alphaModifier );
 		particleSystem1.bindModifier( 'color', colorModifier );
 
-		var atlas2Modifier = new PHOTONS.EvenIntervalIndexModifier ( 16 );
+		var atlas2Modifier = new PHOTONS.LoopingTimeIntervalIndexModifier( 16, 10 );
 
 		particleSystem2.bindInitializer( 'position', positionModifier );
 		particleSystem2.bindInitializer( 'velocity', velocityModifier );
