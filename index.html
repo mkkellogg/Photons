@@ -114,7 +114,7 @@
 
 		var _TPSV = PHOTONS.SingularVector;
 
-		smokeType = ParticleSystemIDs.Smoke1;
+		smokeType = ParticleSystemIDs.Smoke2;
 
 		var smoke1Atlas = new PHOTONS.Atlas( THREE.ImageUtils.loadTexture( 'textures/campfire/smokeparticle.png' ), true );
 		var smoke2Atlas = PHOTONS.Atlas.createGridAtlas( THREE.ImageUtils.loadTexture( 'textures/campfire/smokeparticles.png' ), 0.0, 1.0, 1.0, 0.0, 4.0, 4.0, false, true );
@@ -285,6 +285,13 @@
 		particleSystem1.bindModifier( 'alpha', alphaModifier );
 		particleSystem1.bindModifier( 'color', colorModifier );
 
+		var atlas2Initializer = new PHOTONS.RandomModifier( {
+			offset: 8,
+			range: 8,
+			rangeEdgeClamp: false,
+			rangeType: PHOTONS.RangeType.Integer
+		} );
+
 		var atlas2Modifier = new PHOTONS.LoopingTimeIntervalIndexModifier( 16, 10 );
 
 		particleSystem2.bindInitializer( 'position', positionModifier );
@@ -292,6 +299,7 @@
 		particleSystem2.bindInitializer( 'acceleration', accelerationModifier );
 		particleSystem2.bindInitializer( 'rotation', rotationModifier );
 		particleSystem2.bindInitializer( 'rotationalSpeed', rotationalSpeedModifier );
+		particleSystem2.bindInitializer( 'atlas', atlas2Initializer );
 		particleSystem2.bindModifier( 'atlas', atlas2Modifier );
 		particleSystem2.bindModifier( 'size', sizeModifier );
 		particleSystem2.bindModifier( 'alpha', alphaModifier );

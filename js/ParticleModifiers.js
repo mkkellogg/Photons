@@ -54,6 +54,10 @@ PHOTONS.RandomModifier.prototype.update = function( particle, target ) {
 
 		PHOTONS.Random.getRandomVectorSphere( target, this.offset, this.range, this.rangeEdgeClamp );
 
+	} else if ( this.rangeType == PHOTONS.RangeType.Integer ) {
+
+		PHOTONS.Random.getRandomInteger( target, this.offset, this.range, this.rangeEdgeClamp );
+
 	}
 
 }
@@ -103,7 +107,6 @@ PHOTONS.EvenIntervalIndexModifier.prototype.update = function( particle, target 
 
 }
 
-
 //=======================================
 // LoopingTimeIntervalIndex Modifier
 //=======================================
@@ -117,8 +120,12 @@ PHOTONS.LoopingTimeIntervalIndexModifier = function( totalSteps, imagesPerSecond
 PHOTONS.LoopingTimeIntervalIndexModifier.prototype = Object.create( PHOTONS.Modifier.prototype );
 
 PHOTONS.LoopingTimeIntervalIndexModifier.prototype.update = function( particle, target ) {
+
+	// keep track of the atlas we started on so we can start randomly and progress normally afterwards
+	if ( particle.atlasStartIndex == undefined ) 
+		particle.atlasStartIndex = particle.atlasIndex.x;	
 	
-	var step = Math.floor( particle.age / this.timePerImage ) % this.totalSteps;	
+	var step = Math.floor( particle.atlasStartIndex + particle.age / this.timePerImage ) % this.totalSteps;	
 	target.set( step, step, step );
 
 }
