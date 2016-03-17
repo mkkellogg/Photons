@@ -292,15 +292,18 @@
 			rangeType: PHOTONS.RangeType.Integer
 		} );
 
-		var atlas2Modifier = new PHOTONS.LoopingTimeIntervalIndexModifier( 16, 10 );
+		var atlas2Modifier = new PHOTONS.LoopingTimeIntervalIndexModifier( 16, 5 );
+
+		// the modifier seems to need to be bound before the initializer... not sure why
+		particleSystem2.bindModifier( 'atlas', atlas2Modifier );
+		particleSystem2.bindInitializer( 'atlas', atlas2Initializer );
 
 		particleSystem2.bindInitializer( 'position', positionModifier );
 		particleSystem2.bindInitializer( 'velocity', velocityModifier );
 		particleSystem2.bindInitializer( 'acceleration', accelerationModifier );
 		particleSystem2.bindInitializer( 'rotation', rotationModifier );
-		particleSystem2.bindInitializer( 'rotationalSpeed', rotationalSpeedModifier );
-		particleSystem2.bindInitializer( 'atlas', atlas2Initializer );
-		particleSystem2.bindModifier( 'atlas', atlas2Modifier );
+		particleSystem2.bindInitializer( 'rotationalSpeed', rotationalSpeedModifier );				
+
 		particleSystem2.bindModifier( 'size', sizeModifier );
 		particleSystem2.bindModifier( 'alpha', alphaModifier );
 		particleSystem2.bindModifier( 'color', colorModifier );
@@ -310,6 +313,8 @@
 
 		particleSystemsParent.add ( particleSystems[ ParticleSystemIDs.Smoke1 ] );
 		particleSystemsParent.add ( particleSystems[ ParticleSystemIDs.Smoke2 ] );
+
+		
 
 	}
 
