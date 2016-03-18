@@ -5,11 +5,11 @@
 var PHOTONS = PHOTONS || {};
 
 PHOTONS.RangeType = Object.freeze( {
-
-	Cube: 1,
-	Sphere: 2,
-	Plane: 3,
-	Integer: 4
+	
+	Default: 1,
+	Cube: 2,
+	Sphere: 3,
+	Plane: 4		
 
 } );
 
