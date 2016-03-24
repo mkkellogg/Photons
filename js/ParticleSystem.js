@@ -499,7 +499,8 @@ PHOTONS.ParticleSystem.prototype.updateAttributesWithParticleData = function() {
 
 		}
 
-		this.particleGeometry.setDrawRange( 0, PHOTONS.Constants.VerticesPerParticle * this.liveParticleCount );
+		if ( this.liveParticleCount > 0 ) 
+			this.particleGeometry.setDrawRange( 0, PHOTONS.Constants.VerticesPerParticle * this.liveParticleCount );
 
 	}
 
@@ -947,23 +948,30 @@ PHOTONS.ParticleSystem.DefaultInitializer = {
 
 PHOTONS.Particle = function() {
 
-	this.age = 0;
-	this.alive = 0;
-	this.lifeSpan = 0;
+	var _id = 0;
 
-	this.size = new THREE.Vector3();
-	this.color = new THREE.Color();
-	this.alpha = new PHOTONS.SingularVector( 0 );
-	this.atlasIndex = new PHOTONS.SingularVector( 0 );
+	return function() {
 
-	this.position = new THREE.Vector3();
-	this.velocity = new THREE.Vector3();
-	this.acceleration = new THREE.Vector3();
+		this.id = ++_id;
+		this.age = 0;
+		this.alive = 0;
+		this.lifeSpan = 0;
 
-	this.rotation = new PHOTONS.SingularVector( 0 );
-	this.rotationalSpeed = new PHOTONS.SingularVector( 0 );
-	this.rotationalAcceleration = new PHOTONS.SingularVector( 0 );
+		this.size = new THREE.Vector3();
+		this.color = new THREE.Color();
+		this.alpha = new PHOTONS.SingularVector( 0 );
+		this.atlasIndex = new PHOTONS.SingularVector( 0 );
 
-	this._tempVector3 = new THREE.Vector3();
+		this.position = new THREE.Vector3();
+		this.velocity = new THREE.Vector3();
+		this.acceleration = new THREE.Vector3();
 
-}
+		this.rotation = new PHOTONS.SingularVector( 0 );
+		this.rotationalSpeed = new PHOTONS.SingularVector( 0 );
+		this.rotationalAcceleration = new PHOTONS.SingularVector( 0 );
+
+		this._tempVector3 = new THREE.Vector3();
+
+	}	
+
+} ();

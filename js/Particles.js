@@ -5,10 +5,11 @@
 var PHOTONS = PHOTONS || {};
 
 PHOTONS.RangeType = Object.freeze( {
-
-	Cube: 1,
-	Sphere: 2,
-	Plane: 3
+	
+	Default: 1,
+	Cube: 2,
+	Sphere: 3,
+	Plane: 4		
 
 } );
 
@@ -63,6 +64,12 @@ PHOTONS.Random.getRandomVectorSphere = function( vector, offset, range, edgeClam
 	}
 
 	vector.addVectors( vector, offset );
+
+}
+
+PHOTONS.Random.getRandomInteger = function( number, offset, range, edgeClamp ) {
+
+	number.x = Math.floor( offset + Math.random() * range );
 
 }
 
