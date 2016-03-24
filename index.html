@@ -114,10 +114,12 @@
 
 		var _TPSV = PHOTONS.SingularVector;
 
-		smokeType = ParticleSystemIDs.Smoke2;
+		smokeType = ParticleSystemIDs.Smoke1;
 
-		var smoke1Atlas = new PHOTONS.Atlas( THREE.ImageUtils.loadTexture( 'textures/campfire/smokeparticle.png' ), true );
-		var smoke2Atlas = PHOTONS.Atlas.createGridAtlas( THREE.ImageUtils.loadTexture( 'textures/campfire/smokeparticles.png' ), 0.0, 1.0, 1.0, 0.0, 4.0, 4.0, false, true );
+		var textureLoader = new THREE.TextureLoader();
+
+		var smoke1Atlas = new PHOTONS.Atlas( textureLoader.load( 'textures/campfire/smokeparticle.png' ), true );
+		var smoke2Atlas = PHOTONS.Atlas.createGridAtlas( textureLoader.load( 'textures/campfire/smokeparticles.png' ), 0.0, 1.0, 1.0, 0.0, 4.0, 4.0, false, true );
 
 		var altVertexShader = [
 
@@ -162,7 +164,7 @@
 						"vec3 lightPosition = pointLights[ i ].position;",
 						"vec3 lVector = lightPosition + viewPosition.xyz;",
 						"vec3 lightDir = normalize( lVector );",
-						"float attenuation = calcLightAttenuation( length( lVector ), pointLights[ i ].distance, pointLights[ i ].decay );",
+						"float attenuation = punctualLightIntensityToIrradianceFactor( length( lVector ), pointLights[ i ].distance, pointLights[ i ].decay );",
 						"totalDiffuseLight += lightColor * attenuation;",
 					"}",
 				"#endif",
@@ -294,16 +296,13 @@
 
 		var atlas2Modifier = new PHOTONS.LoopingTimeIntervalIndexModifier( 16, 5 );
 
-		// the modifier seems to need to be bound before the initializer... not sure why
-		particleSystem2.bindModifier( 'atlas', atlas2Modifier );
 		particleSystem2.bindInitializer( 'atlas', atlas2Initializer );
-
 		particleSystem2.bindInitializer( 'position', positionModifier );
 		particleSystem2.bindInitializer( 'velocity', velocityModifier );
 		particleSystem2.bindInitializer( 'acceleration', accelerationModifier );
 		particleSystem2.bindInitializer( 'rotation', rotationModifier );
 		particleSystem2.bindInitializer( 'rotationalSpeed', rotationalSpeedModifier );				
-
+		particleSystem2.bindModifier( 'atlas', atlas2Modifier );
 		particleSystem2.bindModifier( 'size', sizeModifier );
 		particleSystem2.bindModifier( 'alpha', alphaModifier );
 		particleSystem2.bindModifier( 'color', colorModifier );
@@ -322,6 +321,8 @@
 
 		var _TPSV = PHOTONS.SingularVector;
 
+		var textureLoader = new THREE.TextureLoader();
+
 		// ---------------------
 		// flame particle system
 		// ---------------------
@@ -332,7 +333,7 @@
 		var particleSystemParams = {
 
 			material: flameMaterial,
-			particleAtlas : PHOTONS.Atlas.createGridAtlas( THREE.ImageUtils.loadTexture( 'textures/campfire/fireloop3.jpg' ), 0.0, 1.0, 1.0, 0.0, 8.0, 8.0, false, true ),
+			particleAtlas : PHOTONS.Atlas.createGridAtlas( textureLoader.load( 'textures/campfire/fireloop3.jpg' ), 0.0, 1.0, 1.0, 0.0, 8.0, 8.0, false, true ),
 			particleReleaseRate : 3,
 			particleLifeSpan : 3,
 			lifespan : 0
@@ -396,7 +397,7 @@
 		particleSystemParams = {
 
 			material: emberMaterial,
-			particleAtlas : new PHOTONS.Atlas( THREE.ImageUtils.loadTexture( 'textures/campfire/Puff.png' ), true ),
+			particleAtlas : new PHOTONS.Atlas( textureLoader.load( 'textures/campfire/Puff.png' ), true ),
 			particleReleaseRate : 18,
 			particleLifeSpan : 3,
 			lifespan : 0
@@ -471,7 +472,7 @@
 					smokeActive = ! smokeActive; updateSmokeType();
 
 				},
-				smokeType: null,
+				smokeType: ParticleSystemIDs.Smoke1,
 				embers: function() {
 
 					toggleParticleSystem( ParticleSystemIDs.FlameEmbers );
@@ -525,13 +526,12 @@
 		pointLight = new THREE.PointLight( 0xffffff, 2, 1000, 1 );
 		pointLight.position.set( 0, 40, 0 );
 		pointLight.castShadow = true;
-		pointLight.shadowCameraNear = 1;
-		pointLight.shadowCameraFar = 1000;
-		pointLight.shadowDarkness = .8;
+		pointLight.shadow.camera.near = 1;
+		pointLight.shadow.camera.far = 1000;
 		// pointLight.shadowCameraVisible = true;
-		pointLight.shadowMapWidth = 4096;
-		pointLight.shadowMapHeight = 2048;
-		pointLight.shadowBias = - 0.5;
+		pointLight.shadow.mapSize.width = 4096;
+		pointLight.shadow.mapSize.height = 2048;
+		pointLight.shadow.bias = 0.01;
 		scene.add( pointLight );
 
 	}
@@ -541,6 +541,8 @@
 		var loadedCount = 0;
 		var targetLoadCount = 3;
 		var onFinishedCalled = false;
+
+		var textureLoader = new THREE.TextureLoader();
 
 		function incrementAndCheckLoadComplete() {
 
@@ -559,7 +561,7 @@
 		// create ground
 		// ---------------------
 
-		var groundTexture = new THREE.ImageUtils.loadTexture( 'textures/campfire/grass1.jpg' );
+		var groundTexture = new textureLoader.load( 'textures/campfire/grass1.jpg' );
 		groundTexture.wrapS = THREE.RepeatWrapping;
 		groundTexture.wrapT = THREE.RepeatWrapping;
 		groundTexture.repeat.set( 10, 10 );
@@ -567,7 +569,6 @@
 		var groundMaterial = new THREE.MeshLambertMaterial( {
 
 			color: 0xffffff,
-			shading: THREE.SmoothShading,
 			map: groundTexture,
 			vertexColors: THREE.NoColors,
 			side: THREE.BackSide
@@ -587,7 +588,6 @@
 		var campFireMaterial = new THREE.MeshLambertMaterial( {
 
 			color: 0xffffff,
-			shading: THREE.SmoothShading,
 			vertexColors: THREE.NoColors,
 			side: THREE.FrontSide
 
@@ -620,7 +620,6 @@
 		var rockMaterial = new THREE.MeshLambertMaterial( {
 
 			color: 0xffffff,
-			shading: THREE.SmoothShading,
 			vertexColors: THREE.NoColors,
 			side: THREE.FrontSide
 
@@ -667,7 +666,6 @@
 		var treeMaterial = new THREE.MeshLambertMaterial( {
 
 			color: 0xffffff,
-			shading: THREE.SmoothShading,
 			vertexColors: THREE.NoColors,
 			side: THREE.FrontSide
 
