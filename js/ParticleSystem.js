@@ -736,7 +736,7 @@ PHOTONS.ParticleSystem.prototype.sortParticleArray = function() {
 
 			var position = this.liveParticleArray[ p ].position;
 			projectedPosition.copy( position );
-			projectedPosition.applyProjection( mvpMatrix );
+			projectedPosition.applyMatrix4( mvpMatrix );
 
 			if ( ! _sortParticleArray[ p ] ) {
 

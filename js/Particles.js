@@ -5,11 +5,11 @@
 var PHOTONS = PHOTONS || {};
 
 PHOTONS.RangeType = Object.freeze( {
-	
+
 	Default: 1,
 	Cube: 2,
 	Sphere: 3,
-	Plane: 4		
+	Plane: 4
 
 } );
 
@@ -39,8 +39,8 @@ PHOTONS.Random.getRandomVectorCube = function( vector, offset, range, edgeClamp 
 
 	}
 
-	vector.multiplyVectors( range, vector );
-	vector.addVectors( offset, vector );
+	vector.multiplyVectors( vector, range );
+	vector.addVectors( vector, offset  );
 
 }
 
@@ -112,7 +112,7 @@ PHOTONS.SingularVector.prototype.lerp = function( dest, f ) {
 
 PHOTONS.SingularVector.prototype.addVectors = function( vector, offset ) {
 
-	vector.x += offset;
+	vector.x += offset.x;
 
 }
 
