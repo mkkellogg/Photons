@@ -176,7 +176,7 @@
 
 		var customUniforms1 = THREE.UniformsUtils.merge( [ THREE.UniformsLib[ 'lights' ], THREE.UniformsLib[ 'ambient' ] ] );
 
-		var altMaterial1 = PHOTONS.ParticleSystem.createMaterial( altVertexShader, altFragmentShader, customUniforms1 );
+		var altMaterial1 = PHOTONS.ParticleSystem.createMaterial( altVertexShader, altFragmentShader, customUniforms1);
 		altMaterial1.lights = true;
 		altMaterial1.blending = THREE.CustomBlending;
 		altMaterial1.blendSrc = THREE.SrcAlphaFactor;

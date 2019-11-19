@@ -97,7 +97,7 @@ PHOTONS.ParticleSystem.Shader.FragmentVars = [
 
 	"varying vec2 vUV;",
 	"varying vec4 vColor;",
-	"uniform sampler2D texture;",
+	"uniform sampler2D particleTexture;",
 
 ].join( "\n" );
 
@@ -131,46 +131,57 @@ PHOTONS.ParticleSystem.Shader.ParticleVertexQuadPositionFunction = [
 
 ].join( "\n" );
 
-PHOTONS.ParticleSystem.Shader.VertexShader = [
+PHOTONS.ParticleSystem.Shader.getVertexShader = function() {
+	return [
 
-	PHOTONS.ParticleSystem.Shader.VertexVars,
-	PHOTONS.ParticleSystem.Shader.ParticleVertexQuadPositionFunction,
+		PHOTONS.ParticleSystem.Shader.VertexVars,
+		PHOTONS.ParticleSystem.Shader.ParticleVertexQuadPositionFunction,
 
-	"void main() { ",
+		"void main() { ",
 
-		"vColor = customColor;",
-		"vUV = uv;",
-		"vec4 quadPos = getQuadPosition();",
-		"gl_Position = projectionMatrix * viewMatrix * quadPos;",
+			"vColor = customColor;",
+			"vUV = uv;",
+			"vec4 quadPos = getQuadPosition();",
+			"gl_Position = projectionMatrix * viewMatrix * quadPos;",
 
-	"}"
+		"}"
 
-].join( "\n" );
+	].join( "\n" );
+};
 
-PHOTONS.ParticleSystem.Shader.FragmentShader = [
+PHOTONS.ParticleSystem.Shader.getFragmentShader = function(useWebGL2) {
 
-	PHOTONS.ParticleSystem.Shader.FragmentVars,
+	let shader = [
 
-	"void main() { ",
+		PHOTONS.ParticleSystem.Shader.FragmentVars,
 
-	    "vec4 textureColor = texture2D( texture,  vUV );",
-		"gl_FragColor = vColor * textureColor;",
+		"void main() { "
+	].join('\n');
 
-	"}"
+	if (this.useWebGL2) {
+		shader += "vec4 textureColor = texture( particleTexture,  vUV );";
+	} else {
+		shader += "vec4 textureColor = texture2D( particleTexture,  vUV );";
+	}
 
-].join( "\n" );
+	shader += [
+			"gl_FragColor = vColor * textureColor;",
+		"}"
+	].join( "\n" );
+	return shader;
+};
 
-PHOTONS.ParticleSystem.createMaterial = function( vertexShader, fragmentShader, customUniforms ) {
+PHOTONS.ParticleSystem.createMaterial = function( vertexShader, fragmentShader, customUniforms, useWebGL2 ) {
 
 	customUniforms = customUniforms || {};
 
-	customUniforms.texture = { type: "t", value: null };
+	customUniforms.particleTexture = { type: "t", value: null };
 	customUniforms.cameraaxisx = { type: "v3", value: new THREE.Vector3() };
 	customUniforms.cameraaxisy = { type: "v3", value: new THREE.Vector3() };
 	customUniforms.cameraaxisz = { type: "v3", value: new THREE.Vector3() };
 
-	vertexShader = vertexShader || PHOTONS.ParticleSystem.Shader.VertexShader;
-	fragmentShader = fragmentShader || PHOTONS.ParticleSystem.Shader.FragmentShader;
+	vertexShader = vertexShader || PHOTONS.ParticleSystem.Shader.getVertexShader();
+	fragmentShader = fragmentShader || PHOTONS.ParticleSystem.Shader.getFragmentShader(useWebGL2);
 
 	return new THREE.ShaderMaterial(
 	{
@@ -445,7 +456,7 @@ PHOTONS.ParticleSystem.prototype.updateAttributesWithParticleData = function() {
 		this.particleMaterial.uniforms.cameraaxisx.value.copy( vectorX );
 		this.particleMaterial.uniforms.cameraaxisy.value.copy( vectorY );
 		this.particleMaterial.uniforms.cameraaxisz.value.copy( vectorZ );
-		this.particleMaterial.uniforms.texture.value = this.particleAtlas.getTexture();
+		this.particleMaterial.uniforms.particleTexture.value = this.particleAtlas.getTexture();
 
 		for ( var p = 0; p < this.liveParticleCount; p ++ ) {
 
