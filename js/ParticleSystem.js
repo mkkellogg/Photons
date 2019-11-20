@@ -131,37 +131,44 @@ PHOTONS.ParticleSystem.Shader.ParticleVertexQuadPositionFunction = [
 
 ].join( "\n" );
 
-PHOTONS.ParticleSystem.Shader.getVertexShader = function() {
-	return [
-
+PHOTONS.ParticleSystem.Shader.getVertexShader = function(useLogarithmicDepth) {
+	let shader = [
 		PHOTONS.ParticleSystem.Shader.VertexVars,
 		PHOTONS.ParticleSystem.Shader.ParticleVertexQuadPositionFunction,
+	].join("\n");
 
+	if (useLogarithmicDepth) shader += "  \n #include <logdepthbuf_pars_vertex> \n";
+
+	shader += [
 		"void main() { ",
 
 			"vColor = customColor;",
 			"vUV = uv;",
 			"vec4 quadPos = getQuadPosition();",
 			"gl_Position = projectionMatrix * viewMatrix * quadPos;",
+	].join("\n");
 
-		"}"
+	if (useLogarithmicDepth) shader += "   \n  #include <logdepthbuf_vertex> \n";
 
-	].join( "\n" );
+	shader += "} \n";
+
+	return shader;
 };
 
-PHOTONS.ParticleSystem.Shader.getFragmentShader = function(useWebGL2) {
+PHOTONS.ParticleSystem.Shader.getFragmentShader = function(useWebGL2, useLogarithmicDepth) {
 
-	let shader = [
+	let shader = PHOTONS.ParticleSystem.Shader.FragmentVars + "\n";
 
-		PHOTONS.ParticleSystem.Shader.FragmentVars,
+	if (useLogarithmicDepth) shader += "  \n #include <logdepthbuf_pars_fragment> \n";
 
-		"void main() { "
-	].join('\n');
+	shader += "void main() { \n";
+
+	if (useLogarithmicDepth) shader += "    \n  #include <logdepthbuf_fragment> \n";
 
 	if (this.useWebGL2) {
-		shader += "vec4 textureColor = texture( particleTexture,  vUV );";
+		shader += "vec4 textureColor = texture( particleTexture,  vUV ); \n";
 	} else {
-		shader += "vec4 textureColor = texture2D( particleTexture,  vUV );";
+		shader += "vec4 textureColor = texture2D( particleTexture,  vUV ); \n";
 	}
 
 	shader += [
@@ -171,7 +178,7 @@ PHOTONS.ParticleSystem.Shader.getFragmentShader = function(useWebGL2) {
 	return shader;
 };
 
-PHOTONS.ParticleSystem.createMaterial = function( vertexShader, fragmentShader, customUniforms, useWebGL2 ) {
+PHOTONS.ParticleSystem.createMaterial = function( vertexShader, fragmentShader, customUniforms, useWebGL2, useLogarithmicDepth ) {
 
 	customUniforms = customUniforms || {};
 
@@ -180,8 +187,8 @@ PHOTONS.ParticleSystem.createMaterial = function( vertexShader, fragmentShader, 
 	customUniforms.cameraaxisy = { type: "v3", value: new THREE.Vector3() };
 	customUniforms.cameraaxisz = { type: "v3", value: new THREE.Vector3() };
 
-	vertexShader = vertexShader || PHOTONS.ParticleSystem.Shader.getVertexShader();
-	fragmentShader = fragmentShader || PHOTONS.ParticleSystem.Shader.getFragmentShader(useWebGL2);
+	vertexShader = vertexShader || PHOTONS.ParticleSystem.Shader.getVertexShader(useLogarithmicDepth);
+	fragmentShader = fragmentShader || PHOTONS.ParticleSystem.Shader.getFragmentShader(useWebGL2, useLogarithmicDepth);
 
 	return new THREE.ShaderMaterial(
 	{
