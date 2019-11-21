@@ -138,3 +138,22 @@ PHOTONS.LoopingTimeIntervalIndexModifier.prototype.update = function( particle, 
 
 }
 
+//=======================================
+// User Function Modifier
+//=======================================
+
+PHOTONS.UserFunctionModifier = function( callback ) {
+
+	PHOTONS.Modifier.call( this );
+
+	this.callback = callback;
+
+}
+
+PHOTONS.UserFunctionModifier.prototype = Object.create( PHOTONS.Modifier.prototype );
+
+PHOTONS.UserFunctionModifier.prototype.update = function( particle, target ) {
+
+	this.callback(particle.age, target);
+
+}
