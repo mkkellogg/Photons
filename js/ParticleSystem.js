@@ -37,6 +37,7 @@ PHOTONS.ParticleSystem = function() {
 	this.positionInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
 	this.velocityInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
 	this.accelerationInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
+	this.customPositionTransform = null;
 
 	// Particle rotation and rotation modifiers (rotational speed and rotational acceleration)
 	this.rotationUpdater = PHOTONS.ParticleSystem.DefaultRotationUpdater;
@@ -639,6 +640,8 @@ PHOTONS.ParticleSystem.prototype.advanceParticleDisplayAttributes = function( pa
 PHOTONS.ParticleSystem.prototype.advanceParticlePositionData = function( particle, deltaTime ) {
 
 	this.positionUpdater.update( particle, particle.position, deltaTime );
+	if (this.customPositionTransform) particle.position.applyMatrix4(this.customPositionTransform);
+
 	this.velocityUpdater.update( particle, particle.velocity, deltaTime );
 	this.accelerationUpdater.update( particle, particle.acceleration, deltaTime );
 
@@ -900,6 +903,13 @@ PHOTONS.ParticleSystem.prototype.activate = function() {
 		this.isActive = true;
 
 	}
+
+}
+
+PHOTONS.ParticleSystem.prototype.setCustomPositionTransform = function(transform) {
+
+	if (transform) this.customPositionTransform = new THREE.Matrix4().copy(transform);
+	else this.customPositionTransform = null;
 
 }
 
