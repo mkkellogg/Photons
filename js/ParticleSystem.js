@@ -134,6 +134,7 @@ PHOTONS.ParticleSystem.Shader.ParticleVertexQuadPositionFunction = [
 
 PHOTONS.ParticleSystem.Shader.getVertexShader = function(useLogarithmicDepth) {
 	let shader = [
+		'#include <common>',
 		PHOTONS.ParticleSystem.Shader.VertexVars,
 		PHOTONS.ParticleSystem.Shader.ParticleVertexQuadPositionFunction,
 	].join("\n");
@@ -158,7 +159,7 @@ PHOTONS.ParticleSystem.Shader.getVertexShader = function(useLogarithmicDepth) {
 
 PHOTONS.ParticleSystem.Shader.getFragmentShader = function(useWebGL2, useLogarithmicDepth) {
 
-	let shader = PHOTONS.ParticleSystem.Shader.FragmentVars + "\n";
+	let shader ='#include <common> \n' + PHOTONS.ParticleSystem.Shader.FragmentVars + "\n";
 
 	if (useLogarithmicDepth) shader += "  \n #include <logdepthbuf_pars_fragment> \n";
 
@@ -258,28 +259,28 @@ PHOTONS.ParticleSystem.prototype.initializeGeometry = function() {
 	var index = new Float32Array( this.vertexCount );
 
 	var particleColorAttribute = new THREE.BufferAttribute( particleColor, 4 );
-	particleColorAttribute.setDynamic( true );
-	this.particleGeometry.addAttribute( 'customColor', particleColorAttribute );
+	particleColorAttribute.setUsage(THREE.DynamicDrawUsage);
+	this.particleGeometry.setAttribute( 'customColor', particleColorAttribute );
 
 	var positionAttribute = new THREE.BufferAttribute( positions, 3 );
-	positionAttribute.setDynamic( true );
-	this.particleGeometry.addAttribute( 'position', positionAttribute );
+	positionAttribute.setUsage(THREE.DynamicDrawUsage);
+	this.particleGeometry.setAttribute( 'position', positionAttribute );
 
 	var uvAttribute = new THREE.BufferAttribute( uvs, 2 );
-	uvAttribute.setDynamic( true );
-	this.particleGeometry.addAttribute( 'uv', uvAttribute );
+	uvAttribute.setUsage(THREE.DynamicDrawUsage);
+	this.particleGeometry.setAttribute( 'uv', uvAttribute );
 
 	var sizeAttribute = new THREE.BufferAttribute( size, 2 );
-	sizeAttribute.setDynamic( true );
-	this.particleGeometry.addAttribute( 'size', sizeAttribute );
+	sizeAttribute.setUsage(THREE.DynamicDrawUsage);
+	this.particleGeometry.setAttribute( 'size', sizeAttribute );
 
 	var rotationAttribute = new THREE.BufferAttribute( rotation, 1 );
-	rotationAttribute.setDynamic( true );
-	this.particleGeometry.addAttribute( 'rotation', rotationAttribute );
+	rotationAttribute.setUsage(THREE.DynamicDrawUsage);
+	this.particleGeometry.setAttribute( 'rotation', rotationAttribute );
 
 	var indexAttribute = new THREE.BufferAttribute( index, 1 );
-	indexAttribute.setDynamic( true );
-	this.particleGeometry.addAttribute( 'customIndex', indexAttribute );
+	indexAttribute.setUsage(THREE.DynamicDrawUsage);
+	this.particleGeometry.setAttribute( 'customIndex', indexAttribute );
 
 }
 
@@ -822,35 +823,37 @@ PHOTONS.ParticleSystem.prototype.update = function() {
 
 	return function update( deltaTime ) {
 
-		if ( ! this.emitting )return;
 		if ( ! this.isActive )return;
 
-		this.timeSinceLastEmit += deltaTime;
+		if (this.emitting) {
 
-		if ( this.releaseAtOnce ) {
+			this.timeSinceLastEmit += deltaTime;
 
-			var waitTime = this.averageParticleLifeSpan;
+			if ( this.releaseAtOnce ) {
 
-			if ( ! this.hasInitialReleaseOccurred || ( this.timeSinceLastEmit > waitTime && this.liveParticleCount <= 0 ) ) {
+				var waitTime = this.averageParticleLifeSpan;
 
-				this.activateParticles( this.maxParticleCount );
-				this.timeSinceLastEmit = 0.0;
-				this.hasInitialReleaseOccurred = true;
+				if ( ! this.hasInitialReleaseOccurred || ( this.timeSinceLastEmit > waitTime && this.liveParticleCount <= 0 ) ) {
+
+					this.activateParticles( this.maxParticleCount );
+					this.timeSinceLastEmit = 0.0;
+					this.hasInitialReleaseOccurred = true;
+
+				}
+
+			} else {
+
+				var emitUnitTime = 1.0 / this.particleReleaseRate;
+				if ( ! this.hasInitialReleaseOccurred || this.timeSinceLastEmit > emitUnitTime ) {
+
+					var releaseCount = Math.max( 1, Math.floor( this.timeSinceLastEmit / emitUnitTime ) );
+					this.activateParticles( releaseCount );
+					this.timeSinceLastEmit = 0.0;
+					this.hasInitialReleaseOccurred = true;
+
+				}
 
 			}
-
-		} else {
-
-			var emitUnitTime = 1.0 / this.particleReleaseRate;
-			if ( ! this.hasInitialReleaseOccurred || this.timeSinceLastEmit > emitUnitTime ) {
-
-				var releaseCount = Math.max( 1, Math.floor( this.timeSinceLastEmit / emitUnitTime ) );
-				this.activateParticles( releaseCount );
-				this.timeSinceLastEmit = 0.0;
-				this.hasInitialReleaseOccurred = true;
-
-			}
-
 		}
 
 		this.advanceParticles( deltaTime );
@@ -859,7 +862,7 @@ PHOTONS.ParticleSystem.prototype.update = function() {
 
 			this.camera.updateMatrixWorld();
 			tempMatrix4.copy( this.camera.matrixWorld );
-			tempMatrix4.getInverse( tempMatrix4 );
+			tempMatrix4.copy( tempMatrix4 ).invert();
 			this.sortParticleArray( tempMatrix4 );
 
 		}
