@@ -26,7 +26,7 @@ The current version produces 3D geometry for each particle by creating a quad fo
 
 The repository includes a demo page (index.html) that demonstrates how to define and initialize particle systems.
 
-**Demo:** The particle system can be seen in action [here](http://projects.markkellogg.org/threejs/demoParticleSystem.php).
+**Demo:** The particle system can be seen in action [here](http://projects.markkellogg.org/threejs/demo_particle_system.php).
 
 # Sample code
 

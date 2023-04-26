@@ -7,73 +7,74 @@
 //=======================================
 
 var PHOTONS = PHOTONS || {};
+class ParticleSystem extends THREE.Object3D {
 
-PHOTONS.ParticleSystem = function() {
+	constructor () {
+		super();
 
-	THREE.Object3D.call( this );
-
-	this.zSort = false;
-	this.simulateInLocalSpace = true;
-	this.matrixAutoUpdate = true;
-
-	this.releaseAtOnce = false;
-	this.releaseAtOnceCount = 0.0;
-	this.hasInitialReleaseOccurred = false;
-	this.isActive = false;
-
-	this.atlasInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
-	this.colorInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
-	this.alphaInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
-	this.sizeInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
-	this.atlasUpdater = PHOTONS.ParticleSystem.DefaultUpdater;
-	this.colorUpdater = PHOTONS.ParticleSystem.DefaultUpdater;
-	this.alphaUpdater = PHOTONS.ParticleSystem.DefaultUpdater;
-	this.sizeUpdater = PHOTONS.ParticleSystem.DefaultUpdater;
-
-	// Particle position and position modifiers (velocity and acceleration)
-	this.positionUpdater = PHOTONS.ParticleSystem.DefaultPositionUpdater;
-	this.velocityUpdater = PHOTONS.ParticleSystem.DefaultVelocityUpdater;
-	this.accelerationUpdater = PHOTONS.ParticleSystem.DefaultUpdater;
-	this.positionInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
-	this.velocityInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
-	this.accelerationInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
-	this.customPositionTransform = null;
-
-	// Particle rotation and rotation modifiers (rotational speed and rotational acceleration)
-	this.rotationUpdater = PHOTONS.ParticleSystem.DefaultRotationUpdater;
-	this.rotationalSpeedUpdater = PHOTONS.ParticleSystem.DefaultRotationalSpeedUpdater;
-	this.rotationalAccelerationUpdater = PHOTONS.ParticleSystem.DefaultUpdater;
-	this.rotationInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
-	this.rotationalSpeedInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
-	this.rotationalAccelerationInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
-
-	this.particleReleaseRate = 100;
-	this.particleLifeSpan = 1.0;
-	this.averageParticleLifeSpan = 1.0;
-	this.calculateAverageParticleLifeSpan();
-
-	this.calculateMaxParticleCount();
-	this.liveParticleCount = 0;
-	this.deadParticleCount = 0;
-	this.liveParticleArray = [];
-	this.deadParticleArray = [];
-
-	this._tempParticleArray = [];
-
-	this.timeSinceLastEmit = 0.0;
-	this.emitting = true;
-	this.age = 0.0;
-	this.lifespan = 0;
-
-	// temporary storage
-	this._tempVector3 = new THREE.Vector3();
-	this._tempQuaternion = new THREE.Quaternion();
-	this._tempMatrix4 = new THREE.Matrix4();
+		this.zSort = false;
+		this.simulateInLocalSpace = true;
+		this.matrixAutoUpdate = true;
+	
+		this.releaseAtOnce = false;
+		this.releaseAtOnceCount = 0.0;
+		this.hasInitialReleaseOccurred = false;
+		this.isActive = false;
+	
+		this.atlasInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
+		this.colorInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
+		this.alphaInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
+		this.sizeInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
+		this.atlasUpdater = PHOTONS.ParticleSystem.DefaultUpdater;
+		this.colorUpdater = PHOTONS.ParticleSystem.DefaultUpdater;
+		this.alphaUpdater = PHOTONS.ParticleSystem.DefaultUpdater;
+		this.sizeUpdater = PHOTONS.ParticleSystem.DefaultUpdater;
+	
+		// Particle position and position modifiers (velocity and acceleration)
+		this.positionUpdater = PHOTONS.ParticleSystem.DefaultPositionUpdater;
+		this.velocityUpdater = PHOTONS.ParticleSystem.DefaultVelocityUpdater;
+		this.accelerationUpdater = PHOTONS.ParticleSystem.DefaultUpdater;
+		this.positionInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
+		this.velocityInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
+		this.accelerationInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
+		this.customPositionTransform = null;
+	
+		// Particle rotation and rotation modifiers (rotational speed and rotational acceleration)
+		this.rotationUpdater = PHOTONS.ParticleSystem.DefaultRotationUpdater;
+		this.rotationalSpeedUpdater = PHOTONS.ParticleSystem.DefaultRotationalSpeedUpdater;
+		this.rotationalAccelerationUpdater = PHOTONS.ParticleSystem.DefaultUpdater;
+		this.rotationInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
+		this.rotationalSpeedInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
+		this.rotationalAccelerationInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
+	
+		this.particleReleaseRate = 100;
+		this.particleLifeSpan = 1.0;
+		this.averageParticleLifeSpan = 1.0;
+		this.calculateAverageParticleLifeSpan();
+	
+		this.calculateMaxParticleCount();
+		this.liveParticleCount = 0;
+		this.deadParticleCount = 0;
+		this.liveParticleArray = [];
+		this.deadParticleArray = [];
+	
+		this._tempParticleArray = [];
+	
+		this.timeSinceLastEmit = 0.0;
+		this.emitting = true;
+		this.age = 0.0;
+		this.lifespan = 0;
+	
+		// temporary storage
+		this._tempVector3 = new THREE.Vector3();
+		this._tempQuaternion = new THREE.Quaternion();
+		this._tempMatrix4 = new THREE.Matrix4();
+	
+	}
 
 }
 
-PHOTONS.ParticleSystem.prototype = Object.create( THREE.Object3D.prototype );
-PHOTONS.ParticleSystem.prototype.constructor = PHOTONS.ParticleSystem;
+PHOTONS.ParticleSystem = ParticleSystem;
 
 //=======================================
 // Particle system default shader
@@ -259,27 +260,27 @@ PHOTONS.ParticleSystem.prototype.initializeGeometry = function() {
 	var index = new Float32Array( this.vertexCount );
 
 	var particleColorAttribute = new THREE.BufferAttribute( particleColor, 4 );
-	particleColorAttribute.setUsage(THREE.DynamicDrawUsage);
+	particleColorAttribute.dynamic = true;
 	this.particleGeometry.setAttribute( 'customColor', particleColorAttribute );
 
 	var positionAttribute = new THREE.BufferAttribute( positions, 3 );
-	positionAttribute.setUsage(THREE.DynamicDrawUsage);
+	positionAttribute.dynamic = true;
 	this.particleGeometry.setAttribute( 'position', positionAttribute );
 
 	var uvAttribute = new THREE.BufferAttribute( uvs, 2 );
-	uvAttribute.setUsage(THREE.DynamicDrawUsage);
+	uvAttribute.dynamic = true;
 	this.particleGeometry.setAttribute( 'uv', uvAttribute );
 
 	var sizeAttribute = new THREE.BufferAttribute( size, 2 );
-	sizeAttribute.setUsage(THREE.DynamicDrawUsage);
+	sizeAttribute.dynamic = true;
 	this.particleGeometry.setAttribute( 'size', sizeAttribute );
 
 	var rotationAttribute = new THREE.BufferAttribute( rotation, 1 );
-	rotationAttribute.setUsage(THREE.DynamicDrawUsage);
+	rotationAttribute.dynamic = true;
 	this.particleGeometry.setAttribute( 'rotation', rotationAttribute );
 
 	var indexAttribute = new THREE.BufferAttribute( index, 1 );
-	indexAttribute.setUsage(THREE.DynamicDrawUsage);
+	indexAttribute.dynamic = true;
 	this.particleGeometry.setAttribute( 'customIndex', indexAttribute );
 
 }

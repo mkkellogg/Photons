@@ -148,10 +148,25 @@
 			"  #include <lights_pars_begin>\n",
 			"  #include <lights_phong_pars_fragment>\n",
 
+			"float punctualLightIntensityToIrradianceFactor( const in float lightDistance, const in float cutoffDistance, const in float decayExponent ) {\n",
+			"#if defined ( PHYSICALLY_CORRECT_LIGHTS )\n",
+			"	float distanceFalloff = 1.0 / max( pow( lightDistance, decayExponent ), 0.01 );\n",
+			"	if( cutoffDistance > 0.0 ) {\n",
+			"		distanceFalloff *= pow2( saturate( 1.0 - pow4( lightDistance / cutoffDistance ) ) );\n",
+			"	}\n",
+			"	return distanceFalloff;\n",
+			"#else\n",
+			"	if( cutoffDistance > 0.0 && decayExponent > 0.0 ) {\n",
+			"		return pow( saturate( -lightDistance / cutoffDistance + 1.0 ), decayExponent );\n",
+			"	}\n",
+			"	return 1.0;\n",
+			"#endif\n",
+			"}\n",
+
 			"void main()",
 			"{",
 
-				"vec4 textureColor = texture2D( texture, vUV );",
+				"vec4 textureColor = texture2D( particleTexture, vUV );",
 				"vec4 viewPosition = -vPosition;",
 				"vec3 outgoingLight = vec3( 0.0 );",
 				"vec4 diffuseColor = vColor * textureColor;",
@@ -164,7 +179,7 @@
 						"vec3 lightPosition = pointLights[ i ].position;",
 						"vec3 lVector = lightPosition + viewPosition.xyz;",
 						"vec3 lightDir = normalize( lVector );",
-						"float attenuation = punctualLightIntensityToIrradianceFactor( length( lVector ), pointLights[ i ].distance, pointLights[ i ].decay );",
+						"float attenuation = punctualLightIntensityToIrradianceFactor( length( lVector ), pointLights[ i ].distance, pointLights[ i ].decay );", 
 						"totalDiffuseLight += lightColor * attenuation;",
 					"}",
 				"#endif",
@@ -182,10 +197,10 @@
 		altMaterial1.blendSrc = THREE.SrcAlphaFactor;
 		altMaterial1.blendDst = THREE.OneMinusSrcAlphaFactor;
 		altMaterial1.blendEquation = THREE.AddEquation;
-		altMaterial1.uniforms.texture.value = smoke1Atlas.getTexture();
+		altMaterial1.uniforms.particleTexture.value = smoke1Atlas.getTexture();
 
 		var altMaterial2 = altMaterial1.clone();
-		altMaterial2.uniforms.texture.value = smoke2Atlas.getTexture();
+		altMaterial2.uniforms.particleTexture.value = smoke2Atlas.getTexture();
 
 		var particleSystemParams1 = {
 
@@ -561,7 +576,7 @@
 		// create ground
 		// ---------------------
 
-		var groundTexture = new textureLoader.load( 'textures/campfire/grass1.jpg' );
+		var groundTexture = textureLoader.load( 'textures/campfire/grass1.jpg' );
 		groundTexture.wrapS = THREE.RepeatWrapping;
 		groundTexture.wrapT = THREE.RepeatWrapping;
 		groundTexture.repeat.set( 10, 10 );
