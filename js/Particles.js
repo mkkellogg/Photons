@@ -21,104 +21,109 @@ PHOTONS.Constants = Object.freeze( {
 } );
 
 
-PHOTONS.Random = PHOTONS.Random || {};
+PHOTONS.Random = {
 
-PHOTONS.Random.getRandomVectorCube = function( vector, offset, range, edgeClamp ) {
+	getRandomVectorCube: function( vector, offset, range, edgeClamp ) {
 
-	var x = Math.random() - 0.5;
-	var y = Math.random() - 0.5;
-	var z = Math.random() - 0.5;
-	var w = Math.random() - 0.5;
+		var x = Math.random() - 0.5;
+		var y = Math.random() - 0.5;
+		var z = Math.random() - 0.5;
+		var w = Math.random() - 0.5;
 
-	vector.set( x, y, z, w );
+		vector.set( x, y, z, w );
 
-	if ( edgeClamp ) {
+		if ( edgeClamp ) {
 
-		var max = Math.max ( Math.abs( vector.x ), Math.max ( Math.abs( vector.y ), Math.abs( vector.z ) ) );
-		vector.multiplyScalar( 1.0 / max );
+			var max = Math.max ( Math.abs( vector.x ), Math.max ( Math.abs( vector.y ), Math.abs( vector.z ) ) );
+			vector.multiplyScalar( 1.0 / max );
+
+		}
+
+		vector.multiplyVectors( vector, range );
+		vector.addVectors( vector, offset  );
+
+	},
+
+	getRandomVectorSphere: function( vector, offset, range, edgeClamp ) {
+
+		var x = Math.random() - 0.5;
+		var y = Math.random() - 0.5;
+		var z = Math.random() - 0.5;
+		var w = Math.random() - 0.5;
+
+		vector.set( x, y, z, w );
+		vector.normalize();
+
+		vector.multiplyVectors( vector, range );
+
+		if ( ! edgeClamp ) {
+
+			var adjust = Math.random() * 2.0 - 1.0;
+			vector.multiplyScalar( adjust );
+
+		}
+
+		vector.addVectors( vector, offset );
+
+	},
+
+	getRandomInteger: function( number, offset, range, edgeClamp ) {
+
+		number.x = Math.floor( offset + Math.random() * range );
 
 	}
 
-	vector.multiplyVectors( vector, range );
-	vector.addVectors( vector, offset  );
+};
 
-}
 
-PHOTONS.Random.getRandomVectorSphere = function( vector, offset, range, edgeClamp ) {
+PHOTONS.SingularVector = class {
 
-	var x = Math.random() - 0.5;
-	var y = Math.random() - 0.5;
-	var z = Math.random() - 0.5;
-	var w = Math.random() - 0.5;
+	constructor ( x ) {
 
-	vector.set( x, y, z, w );
-	vector.normalize();
-
-	vector.multiplyVectors( vector, range );
-
-	if ( ! edgeClamp ) {
-
-		var adjust = Math.random() * 2.0 - 1.0;
-		vector.multiplyScalar( adjust );
+		this.x = x;
 
 	}
 
-	vector.addVectors( vector, offset );
+	copy ( dest ) {
 
-}
+		this.x = dest.x;
 
-PHOTONS.Random.getRandomInteger = function( number, offset, range, edgeClamp ) {
+	}
 
-	number.x = Math.floor( offset + Math.random() * range );
+	set ( x ) {
 
-}
+		this.x = x;
 
-PHOTONS.SingularVector = function( x ) {
+	}
 
-	this.x = x;
+	normalize () {
 
-}
+		// intentionally empty
 
+	}
 
-PHOTONS.SingularVector.prototype.copy = function( dest ) {
+	multiplyScalar ( x ) {
 
-	this.x = dest.x;
+		this.x *= x;
 
-}
+	}
 
-PHOTONS.SingularVector.prototype.set = function( x ) {
+	lerp = function( dest, f ) {
 
-	this.x = x;
+		this.x = this.x + f * ( dest.x - this.x );
 
-}
+	}
 
-PHOTONS.SingularVector.prototype.normalize = function() {
+	addVectors ( vector, offset ) {
 
-	//return this;
+		vector.x += offset.x;
 
-}
+	}
 
-PHOTONS.SingularVector.prototype.multiplyScalar = function( x ) {
+	multiplyVectors ( vector, rangeVector ) {
 
-	this.x *= x;
+		vector.x *= rangeVector.x;
 
-}
+	}
 
-PHOTONS.SingularVector.prototype.lerp = function( dest, f ) {
-
-	this.x = this.x + f * ( dest.x - this.x );
-
-}
-
-PHOTONS.SingularVector.prototype.addVectors = function( vector, offset ) {
-
-	vector.x += offset.x;
-
-}
-
-PHOTONS.SingularVector.prototype.multiplyVectors = function( vector, rangeVector ) {
-
-	vector.x *= rangeVector.x;
-
-}
-
+};

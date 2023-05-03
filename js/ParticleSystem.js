@@ -7,6 +7,7 @@
 //=======================================
 
 var PHOTONS = PHOTONS || {};
+
 class ParticleSystem extends THREE.Object3D {
 
 	constructor () {
@@ -21,31 +22,31 @@ class ParticleSystem extends THREE.Object3D {
 		this.hasInitialReleaseOccurred = false;
 		this.isActive = false;
 	
-		this.atlasInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
-		this.colorInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
-		this.alphaInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
-		this.sizeInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
-		this.atlasUpdater = PHOTONS.ParticleSystem.DefaultUpdater;
-		this.colorUpdater = PHOTONS.ParticleSystem.DefaultUpdater;
-		this.alphaUpdater = PHOTONS.ParticleSystem.DefaultUpdater;
-		this.sizeUpdater = PHOTONS.ParticleSystem.DefaultUpdater;
+		this.atlasInitializer = ParticleSystem.DefaultInitializer;
+		this.colorInitializer = ParticleSystem.DefaultInitializer;
+		this.alphaInitializer = ParticleSystem.DefaultInitializer;
+		this.sizeInitializer = ParticleSystem.DefaultInitializer;
+		this.atlasUpdater = ParticleSystem.DefaultUpdater;
+		this.colorUpdater = ParticleSystem.DefaultUpdater;
+		this.alphaUpdater = ParticleSystem.DefaultUpdater;
+		this.sizeUpdater = ParticleSystem.DefaultUpdater;
 	
 		// Particle position and position modifiers (velocity and acceleration)
-		this.positionUpdater = PHOTONS.ParticleSystem.DefaultPositionUpdater;
-		this.velocityUpdater = PHOTONS.ParticleSystem.DefaultVelocityUpdater;
-		this.accelerationUpdater = PHOTONS.ParticleSystem.DefaultUpdater;
-		this.positionInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
-		this.velocityInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
-		this.accelerationInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
+		this.positionUpdater = ParticleSystem.DefaultPositionUpdater;
+		this.velocityUpdater = ParticleSystem.DefaultVelocityUpdater;
+		this.accelerationUpdater = ParticleSystem.DefaultUpdater;
+		this.positionInitializer = ParticleSystem.DefaultInitializer;
+		this.velocityInitializer = ParticleSystem.DefaultInitializer;
+		this.accelerationInitializer = ParticleSystem.DefaultInitializer;
 		this.customPositionTransform = null;
 	
 		// Particle rotation and rotation modifiers (rotational speed and rotational acceleration)
-		this.rotationUpdater = PHOTONS.ParticleSystem.DefaultRotationUpdater;
-		this.rotationalSpeedUpdater = PHOTONS.ParticleSystem.DefaultRotationalSpeedUpdater;
-		this.rotationalAccelerationUpdater = PHOTONS.ParticleSystem.DefaultUpdater;
-		this.rotationInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
-		this.rotationalSpeedInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
-		this.rotationalAccelerationInitializer = PHOTONS.ParticleSystem.DefaultInitializer;
+		this.rotationUpdater = ParticleSystem.DefaultRotationUpdater;
+		this.rotationalSpeedUpdater = ParticleSystem.DefaultRotationalSpeedUpdater;
+		this.rotationalAccelerationUpdater = ParticleSystem.DefaultUpdater;
+		this.rotationInitializer = ParticleSystem.DefaultInitializer;
+		this.rotationalSpeedInitializer = ParticleSystem.DefaultInitializer;
+		this.rotationalAccelerationInitializer = ParticleSystem.DefaultInitializer;
 	
 		this.particleReleaseRate = 100;
 		this.particleLifeSpan = 1.0;
@@ -418,7 +419,7 @@ class ParticleSystem extends THREE.Object3D {
 	
 	createParticle () {
 	
-		var particle = new PHOTONS.Particle();
+		var particle = new Particle();
 		return particle;
 	
 	}
@@ -769,212 +770,245 @@ class ParticleSystem extends THREE.Object3D {
 		else this.customPositionTransform = null;
 	
 	}
+
+	static createMaterial ( vertexShader, fragmentShader, customUniforms, useWebGL2, useLogarithmicDepth ) {
+
+		customUniforms = customUniforms || {};
+	
+		customUniforms.particleTexture = { type: "t", value: null };
+		customUniforms.cameraaxisx = { type: "v3", value: new THREE.Vector3() };
+		customUniforms.cameraaxisy = { type: "v3", value: new THREE.Vector3() };
+		customUniforms.cameraaxisz = { type: "v3", value: new THREE.Vector3() };
+	
+		vertexShader = vertexShader || ParticleSystem.Shader.getVertexShader(useLogarithmicDepth);
+		fragmentShader = fragmentShader || ParticleSystem.Shader.getFragmentShader(useWebGL2, useLogarithmicDepth);
+	
+		return new THREE.ShaderMaterial(
+		{
+			uniforms: customUniforms,
+			vertexShader: vertexShader,
+			fragmentShader: fragmentShader,
+	
+			transparent: true,
+			alphaTest: 0.5,
+	
+			blending: THREE.NormalBlending,
+	
+			depthTest: true,
+			depthWrite: false
+		} );
+	
+	}
+
+	static get DefaultPositionUpdater() {
+
+		return {
+	
+			update : function( particle, target, deltaTime ) {
+
+				particle._tempVector3.copy( particle.velocity );
+				particle._tempVector3.multiplyScalar( deltaTime );
+				particle.position.add( particle._tempVector3 );
+
+			}
+
+		};
+	}
+
+	static get DefaultVelocityUpdater() {
+
+		return {
+
+			update : function( particle, target, deltaTime ) {
+
+				particle._tempVector3.copy( particle.acceleration );
+				particle._tempVector3.multiplyScalar( deltaTime );
+				particle.velocity.add( particle._tempVector3 );
+
+			}
+
+		};
+	}
+
+	static get DefaultRotationUpdater() {
+
+		return {
+
+			update : function( particle, target, deltaTime ) {
+
+				particle.rotation.set( particle.rotation.x += particle.rotationalSpeed.x * deltaTime );
+
+			}
+
+		};
+	}
+
+	static get DefaultRotationalSpeedUpdater() {
+
+		return {
+
+			update : function( particle, target, deltaTime ) {
+
+				particle.rotationalSpeed.set( particle.rotationalSpeed.x += particle.rotationalAcceleration.x * deltaTime );
+
+			}
+
+		};
+	}
+
+	static get DefaultUpdater() {
+
+		return {
+
+			update : function( particle, target, deltaTime ) {
+
+
+			}
+
+		};
+	}
+
+	static get DefaultInitializer() {
+
+		return {
+
+			update : function( particle, target, deltaTime ) {
+
+				target.set( 0, 0, 0, 0 );
+
+			}
+
+		};
+	}
+
+	// Default shader
+	static Shader = {
+
+		get VertexVars() {
+
+			return [
+
+				"attribute vec4 customColor;",
+				"attribute vec2 size;",
+				"attribute float rotation;",
+				"attribute float customIndex;",
+				"varying vec2 vUV;",
+				"varying vec4 vColor;",
+				"uniform vec3 cameraaxisx;",
+				"uniform vec3 cameraaxisy;",
+				"uniform vec3 cameraaxisz;",
+			
+			].join( "\n" );
+		},
+
+		get FragmentVars() {
+
+			return [
+
+				"varying vec2 vUV;",
+				"varying vec4 vColor;",
+				"uniform sampler2D particleTexture;",
+			
+			].join( "\n" );
+		},
+
+		get ParticleVertexQuadPositionFunction() {
+
+			return [
+
+				"vec4 getQuadPosition() {",
+
+					"vec3 axisX = cameraaxisx;",
+					"vec3 axisY = cameraaxisy;",
+					"vec3 axisZ = cameraaxisz;",
+
+					"axisX *= cos( rotation );",
+					"axisY *= sin( rotation );",
+
+					"axisX += axisY;",
+					"axisY = cross( axisZ, axisX );",
+
+					"vec3 edge = vec3( 2.0, customIndex, 3.0 );",
+					"vec3 test = vec3( customIndex, 0.5, customIndex );",
+					"vec3 result = step( edge, test );",
+
+					"float xFactor = -1.0 + ( result.x * 2.0 );",
+					"float yFactor = -1.0 + ( result.y * 2.0 ) + ( result.z * 2.0 );",
+
+					"axisX *= size.x * xFactor;",
+					"axisY *= size.y * yFactor;",
+
+					"return ( modelMatrix * vec4( position, 1.0 ) ) + vec4( axisX + axisY, 0.0 );",
+
+				"}",
+			
+			].join( "\n" );
+		},
+
+		getVertexShader: function(useLogarithmicDepth) {
+			let shader = [
+				'#include <common>',
+				this.VertexVars,
+				this.ParticleVertexQuadPositionFunction,
+			].join("\n");
+		
+			if (useLogarithmicDepth) shader += "  \n #include <logdepthbuf_pars_vertex> \n";
+		
+			shader += [
+				"void main() { ",
+		
+					"vColor = customColor;",
+					"vUV = uv;",
+					"vec4 quadPos = getQuadPosition();",
+					"gl_Position = projectionMatrix * viewMatrix * quadPos;",
+			].join("\n");
+		
+			if (useLogarithmicDepth) shader += "   \n  #include <logdepthbuf_vertex> \n";
+		
+			shader += "} \n";
+		
+			return shader;
+		},
+
+		getFragmentShader: function(useWebGL2, useLogarithmicDepth) {
+
+			let shader ='#include <common> \n' + this.FragmentVars + "\n";
+		
+			if (useLogarithmicDepth) shader += "  \n #include <logdepthbuf_pars_fragment> \n";
+		
+			shader += "void main() { \n";
+		
+			if (useLogarithmicDepth) shader += "    \n  #include <logdepthbuf_fragment> \n";
+		
+			if (this.useWebGL2) {
+				shader += "vec4 textureColor = texture( particleTexture,  vUV ); \n";
+			} else {
+				shader += "vec4 textureColor = texture2D( particleTexture,  vUV ); \n";
+			}
+		
+			shader += [
+					"gl_FragColor = vColor * textureColor;",
+				"}"
+			].join( "\n" );
+			return shader;
+		}
+	};
+	
 }
 
 PHOTONS.ParticleSystem = ParticleSystem;
 
-//=======================================
-// Particle system default shader
-//=======================================
-PHOTONS.ParticleSystem.Shader = PHOTONS.ParticleSystem.Shader || {};
-
-PHOTONS.ParticleSystem.Shader.VertexVars = [
-
-	"attribute vec4 customColor;",
-	"attribute vec2 size;",
-	"attribute float rotation;",
-	"attribute float customIndex;",
-	"varying vec2 vUV;",
-	"varying vec4 vColor;",
-	"uniform vec3 cameraaxisx;",
-	"uniform vec3 cameraaxisy;",
-	"uniform vec3 cameraaxisz;",
-
-].join( "\n" );
-
-PHOTONS.ParticleSystem.Shader.FragmentVars = [
-
-	"varying vec2 vUV;",
-	"varying vec4 vColor;",
-	"uniform sampler2D particleTexture;",
-
-].join( "\n" );
-
-PHOTONS.ParticleSystem.Shader.ParticleVertexQuadPositionFunction = [
-
-	"vec4 getQuadPosition() {",
-
-		"vec3 axisX = cameraaxisx;",
-		"vec3 axisY = cameraaxisy;",
-		"vec3 axisZ = cameraaxisz;",
-
-		"axisX *= cos( rotation );",
-		"axisY *= sin( rotation );",
-
-		"axisX += axisY;",
-		"axisY = cross( axisZ, axisX );",
-
-		"vec3 edge = vec3( 2.0, customIndex, 3.0 );",
-		"vec3 test = vec3( customIndex, 0.5, customIndex );",
-		"vec3 result = step( edge, test );",
-
-		"float xFactor = -1.0 + ( result.x * 2.0 );",
-		"float yFactor = -1.0 + ( result.y * 2.0 ) + ( result.z * 2.0 );",
-
-		"axisX *= size.x * xFactor;",
-		"axisY *= size.y * yFactor;",
-
-		"return ( modelMatrix * vec4( position, 1.0 ) ) + vec4( axisX + axisY, 0.0 );",
-
-	"}",
-
-].join( "\n" );
-
-PHOTONS.ParticleSystem.Shader.getVertexShader = function(useLogarithmicDepth) {
-	let shader = [
-		'#include <common>',
-		PHOTONS.ParticleSystem.Shader.VertexVars,
-		PHOTONS.ParticleSystem.Shader.ParticleVertexQuadPositionFunction,
-	].join("\n");
-
-	if (useLogarithmicDepth) shader += "  \n #include <logdepthbuf_pars_vertex> \n";
-
-	shader += [
-		"void main() { ",
-
-			"vColor = customColor;",
-			"vUV = uv;",
-			"vec4 quadPos = getQuadPosition();",
-			"gl_Position = projectionMatrix * viewMatrix * quadPos;",
-	].join("\n");
-
-	if (useLogarithmicDepth) shader += "   \n  #include <logdepthbuf_vertex> \n";
-
-	shader += "} \n";
-
-	return shader;
-};
-
-PHOTONS.ParticleSystem.Shader.getFragmentShader = function(useWebGL2, useLogarithmicDepth) {
-
-	let shader ='#include <common> \n' + PHOTONS.ParticleSystem.Shader.FragmentVars + "\n";
-
-	if (useLogarithmicDepth) shader += "  \n #include <logdepthbuf_pars_fragment> \n";
-
-	shader += "void main() { \n";
-
-	if (useLogarithmicDepth) shader += "    \n  #include <logdepthbuf_fragment> \n";
-
-	if (this.useWebGL2) {
-		shader += "vec4 textureColor = texture( particleTexture,  vUV ); \n";
-	} else {
-		shader += "vec4 textureColor = texture2D( particleTexture,  vUV ); \n";
-	}
-
-	shader += [
-			"gl_FragColor = vColor * textureColor;",
-		"}"
-	].join( "\n" );
-	return shader;
-};
-
-PHOTONS.ParticleSystem.createMaterial = function( vertexShader, fragmentShader, customUniforms, useWebGL2, useLogarithmicDepth ) {
-
-	customUniforms = customUniforms || {};
-
-	customUniforms.particleTexture = { type: "t", value: null };
-	customUniforms.cameraaxisx = { type: "v3", value: new THREE.Vector3() };
-	customUniforms.cameraaxisy = { type: "v3", value: new THREE.Vector3() };
-	customUniforms.cameraaxisz = { type: "v3", value: new THREE.Vector3() };
-
-	vertexShader = vertexShader || PHOTONS.ParticleSystem.Shader.getVertexShader(useLogarithmicDepth);
-	fragmentShader = fragmentShader || PHOTONS.ParticleSystem.Shader.getFragmentShader(useWebGL2, useLogarithmicDepth);
-
-	return new THREE.ShaderMaterial(
-	{
-		uniforms: customUniforms,
-		vertexShader: vertexShader,
-		fragmentShader: fragmentShader,
-
-		transparent: true,
-		alphaTest: 0.5,
-
-		blending: THREE.NormalBlending,
-
-		depthTest: true,
-		depthWrite: false
-	} );
-
-}
-
-PHOTONS.ParticleSystem.DefaultPositionUpdater = {
-
-	update : function( particle, target, deltaTime ) {
-
-		particle._tempVector3.copy( particle.velocity );
-		particle._tempVector3.multiplyScalar( deltaTime );
-		particle.position.add( particle._tempVector3 );
-
-	}
-}
-
-PHOTONS.ParticleSystem.DefaultVelocityUpdater = {
-
-	update : function( particle, target, deltaTime ) {
-
-		particle._tempVector3.copy( particle.acceleration );
-		particle._tempVector3.multiplyScalar( deltaTime );
-		particle.velocity.add( particle._tempVector3 );
-
-	}
-}
-
-PHOTONS.ParticleSystem.DefaultRotationUpdater = {
-
-	update : function( particle, target, deltaTime ) {
-
-		particle.rotation.set( particle.rotation.x += particle.rotationalSpeed.x * deltaTime );
-
-	}
-}
-
-PHOTONS.ParticleSystem.DefaultRotationalSpeedUpdater = {
-
-	update : function( particle, target, deltaTime ) {
-
-		particle.rotationalSpeed.set( particle.rotationalSpeed.x += particle.rotationalAcceleration.x * deltaTime );
-
-	}
-}
-
-PHOTONS.ParticleSystem.DefaultUpdater = {
-
-	update : function( particle, target, deltaTime ) {
-
-
-	}
-}
-
-PHOTONS.ParticleSystem.DefaultInitializer = {
-
-	update : function( particle, target, deltaTime ) {
-
-		target.set( 0, 0, 0, 0 );
-
-	}
-}
 
 //=======================================
 // Particle object
 //=======================================
 
-PHOTONS.Particle = function() {
+var _particle_id = 0;
+class Particle {
 
-	var _id = 0;
+	constructor() {
 
-	return function() {
-
-		this.id = ++_id;
+		this.id = ++_particle_id;
 		this.age = 0;
 		this.alive = 0;
 		this.lifeSpan = 0;
@@ -996,4 +1030,4 @@ PHOTONS.Particle = function() {
 
 	}	
 
-} ();
+}

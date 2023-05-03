@@ -46,10 +46,10 @@ PHOTONS.Util = {
 			this.objLoader = new THREE.OBJLoader( loadingManager );
 
 		}
+
 		if ( ! this.imageLoader ) {
 
 			this.imageLoader = new THREE.ImageLoader( this.loadingManager );
-
 
 		}
 
@@ -59,7 +59,7 @@ PHOTONS.Util = {
 
 			texture.image = image;
 			texture.needsUpdate = true;
-			
+
 			_this.objLoader.load( objFile, function( object ) {
 
 				object.traverse( function( child ) {

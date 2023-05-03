@@ -8,152 +8,163 @@ var PHOTONS = PHOTONS || {};
 // Base Modifier
 //=======================================
 
-PHOTONS.Modifier = function() {
+PHOTONS.Modifier = class {
 
+};
 
-}
 
 //=======================================
 // Random Modifier
 //=======================================
 
-PHOTONS.RandomModifier = function( params ) {
+PHOTONS.RandomModifier = class RandomModifier extends PHOTONS.Modifier {
 
-	PHOTONS.Modifier.call( this );
+	constructor ( params ) {
 
-	if ( ! params ) params = {};
+		super();
 
-	if ( ! params.range ) {
+		if ( ! params ) params = {};
 
-		throw "Particles.RandomModifier: No range specified.";
+		if ( ! params.range ) {
 
-	}
+			throw "Particles.RandomModifier: No range specified.";
 
-	if ( ! params.offset ) {
+		}
 
-		throw "Particles.RandomModifier: No offset specified.";
+		if ( ! params.offset ) {
 
-	}
+			throw "Particles.RandomModifier: No offset specified.";
 
-	this.range = params.range;
-	this.offset = params.offset;
-	this.rangeType = params.rangeType || PHOTONS.RangeType.Cube;
-	this.rangeEdgeClamp = params.rangeEdgeClamp !== undefined && params.rangeEdgeClamp !== null ? params.rangeEdgeClamp : false ;
+		}
 
-}
-
-PHOTONS.RandomModifier.prototype = Object.create( PHOTONS.Modifier.prototype );
-
-PHOTONS.RandomModifier.prototype.update = function( particle, target ) {
-
-	if ( this.rangeType == PHOTONS.RangeType.Cube ) {
-
-		PHOTONS.Random.getRandomVectorCube( target, this.offset, this.range, this.rangeEdgeClamp );
-
-	} else if ( this.rangeType == PHOTONS.RangeType.Sphere ) {
-
-		PHOTONS.Random.getRandomVectorSphere( target, this.offset, this.range, this.rangeEdgeClamp );
-
-	} else if ( this.rangeType == PHOTONS.RangeType.Default ) {
-
-		PHOTONS.Random.getRandomInteger( target, this.offset, this.range, this.rangeEdgeClamp );
+		this.range = params.range;
+		this.offset = params.offset;
+		this.rangeType = params.rangeType || PHOTONS.RangeType.Cube;
+		this.rangeEdgeClamp = params.rangeEdgeClamp !== undefined && params.rangeEdgeClamp !== null ? params.rangeEdgeClamp : false ;
 
 	}
 
-}
+	update ( particle, target ) {
+
+		if ( this.rangeType == PHOTONS.RangeType.Cube ) {
+	
+			PHOTONS.Random.getRandomVectorCube( target, this.offset, this.range, this.rangeEdgeClamp );
+	
+		} else if ( this.rangeType == PHOTONS.RangeType.Sphere ) {
+	
+			PHOTONS.Random.getRandomVectorSphere( target, this.offset, this.range, this.rangeEdgeClamp );
+	
+		} else if ( this.rangeType == PHOTONS.RangeType.Default ) {
+	
+			PHOTONS.Random.getRandomInteger( target, this.offset, this.range, this.rangeEdgeClamp );
+	
+		}
+	
+	}
+};
 
 
 //=======================================
 // FrameSet Modifier
 //=======================================
 
-PHOTONS.FrameSetModifier = function( frameset ) {
+PHOTONS.FrameSetModifier = class FrameSetModifier extends PHOTONS.Modifier {
 
-	PHOTONS.Modifier.call( this );
+	constructor ( frameset ) {
 
-	this.frameset = frameset;
+		super();
 
-}
+		this.frameset = frameset;
 
-PHOTONS.FrameSetModifier.prototype = Object.create( PHOTONS.Modifier.prototype );
+	}
 
-PHOTONS.FrameSetModifier.prototype.update = function( particle, target ) {
+	update ( particle, target ) {
 
-	this.frameset.interpolateFrameValues( particle.age, target );
+		this.frameset.interpolateFrameValues( particle.age, target );
+	
+	}
 
-}
+};
 
 
 //=======================================
 // EvenIntervalIndex Modifier
 //=======================================
 
-PHOTONS.EvenIntervalIndexModifier = function( totalSteps ) {
+PHOTONS.EvenIntervalIndexModifier = class EvenIntervalIndexModifier extends PHOTONS.Modifier {
 
-	PHOTONS.Modifier.call( this );
-	this.totalSteps = Math.floor( totalSteps || 1 );
+	constructor ( totalSteps ) {
 
-}
+		super();
 
-PHOTONS.EvenIntervalIndexModifier.prototype = Object.create( PHOTONS.Modifier.prototype );
+		this.totalSteps = Math.floor( totalSteps || 1 );
 
-PHOTONS.EvenIntervalIndexModifier.prototype.update = function( particle, target ) {
+	}
 
-	var fraction = particle.age / particle.lifeSpan;
-	var step = Math.floor( fraction * this.totalSteps );
-	if ( step == this.totalSteps && step > 0 ) step --;
+	update ( particle, target ) {
 
-	target.set( step, step, step );
+		var fraction = particle.age / particle.lifeSpan;
+		var step = Math.floor( fraction * this.totalSteps );
+		if ( step == this.totalSteps && step > 0 ) step --;
 
-}
+		target.set( step, step, step );
+
+	}
+
+};
 
 //=======================================
 // LoopingTimeIntervalIndex Modifier
 //=======================================
 
-PHOTONS.LoopingTimeIntervalIndexModifier = function( totalSteps, imagesPerSecond) {
+PHOTONS.LoopingTimeIntervalIndexModifier = class LoopingTimeIntervalIndexModifier extends PHOTONS.Modifier {
 
-		PHOTONS.Modifier.call( this );
-		this.totalSteps = Math.floor( totalSteps || 1 );
-		this.timePerImage = 1 / imagesPerSecond;
-		this.modifierParticleData = {};
+		constructor ( totalSteps, imagesPerSecond ) {
 
-}
+			super();
 
-PHOTONS.LoopingTimeIntervalIndexModifier.prototype = Object.create( PHOTONS.Modifier.prototype );
+			this.totalSteps = Math.floor( totalSteps || 1 );
+			this.timePerImage = 1 / imagesPerSecond;
+			this.modifierParticleData = {};
 
-PHOTONS.LoopingTimeIntervalIndexModifier.prototype.update = function( particle, target ) {
+		}
 
-	 // keep track of the atlas we started on so we can start randomly and progress normally afterwards
-    var data = this.modifierParticleData[particle.id];
-    if( !data ) {
+		update ( particle, target ) {
 
-        data = { 'atlasStartIndex': Math.floor( Math.abs( particle.atlasIndex.x ) ) };
-        this.modifierParticleData[particle.id] = data;
+		    // keep track of the atlas we started on so we can start randomly and progress normally afterwards
+		    var data = this.modifierParticleData[particle.id];
+		    if( !data ) {
 
-    }
+			   	data = { 'atlasStartIndex': Math.floor( Math.abs( particle.atlasIndex.x ) ) };
+			   	this.modifierParticleData[particle.id] = data;
 
-    var step = Math.floor( data.atlasStartIndex + particle.age / this.timePerImage ) % this.totalSteps;   
-    target.set( step );
+		    }
 
-}
+		    var step = Math.floor( data.atlasStartIndex + particle.age / this.timePerImage ) % this.totalSteps;   
+		    target.set( step );
+
+	   }
+
+};
+
 
 //=======================================
 // User Function Modifier
 //=======================================
 
-PHOTONS.UserFunctionModifier = function( callback ) {
+PHOTONS.UserFunctionModifier = class UserFunctionModifier extends PHOTONS.Modifier {
 
-	PHOTONS.Modifier.call( this );
+	constructor ( callback ) {
 
-	this.callback = callback;
+		super();
 
-}
+		this.callback = callback;
 
-PHOTONS.UserFunctionModifier.prototype = Object.create( PHOTONS.Modifier.prototype );
+	}
 
-PHOTONS.UserFunctionModifier.prototype.update = function( particle, target ) {
+	update ( particle, target ) {
 
-	this.callback(particle.age, target);
+		this.callback(particle.age, target);
 
-}
+	}
+};
