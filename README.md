@@ -1,5 +1,11 @@
 # Photons - JavaScript Particle System
 
+<br />
+!! <b>Deprecated</b> !!
+
+This library is now deprecated in order to focus on my new particle system, Photons 2 (https://github.com/mkkellogg/Photons2)
+
+<br />
 Basic particle system for the Three.js 3D graphics library implemented in JavaScript. Three.js does not currently have an official particle system implementation, so this is meant to be a general purpose extendable particle system for it.
 
 This implementation exposes typical physical attributes for each particle: 
