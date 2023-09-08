@@ -1,10 +1,10 @@
 # Photons - JavaScript Particle System
 
 <br />
-!! <b>Deprecated</b> !!
-
+<h3>!! Deprecated !!</h3>
 This library is now deprecated in order to focus on my new particle system, Photons 2 (https://github.com/mkkellogg/Photons2)
-
+<br />
+<br />
 <br />
 Basic particle system for the Three.js 3D graphics library implemented in JavaScript. Three.js does not currently have an official particle system implementation, so this is meant to be a general purpose extendable particle system for it.
 
@@ -31,8 +31,6 @@ The current implementation also supports the concept of a texture atlas (sprites
 The current version produces 3D geometry for each particle by creating a quad for each and orienting the quad so that its normal is parallel to the camera's normal (but pointing in the opposite direction).
 
 The repository includes a demo page (index.html) that demonstrates how to define and initialize particle systems.
-
-**Demo:** The particle system can be seen in action [here](http://projects.markkellogg.org/threejs/demo_particle_system.php).
 
 # Sample code
 
